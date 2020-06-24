@@ -1,0 +1,25 @@
+\section{Background information}
+\subsection{C as the implementation language}
+The choice of an implementation language may affect the bugs or vulnerabilities that are present in the system.
+The de-facto standard implementation language for operating systems and their components has long been C.
+Many popular file systems are implemented in C, such as Ext4. \cite{ext4Source}.
+C is based on typeless languages, BCPL and B, which were developed specifically for operating system programming in early Unix.
+A design principle of C was to be grounded in the operations and data types provided by the computer, while offering abstractions and portability to the programmer. \cite{ritchie1993}
+
+Describe studies on issues with C, bugs found, CVEs, etc.
+
+\subsection{Possible alternatives}
+\begin{itemize}
+  \item Restricting C: MISRA-C, Frama-C
+  \item Rust: esp. reference ownership
+  \item D: allows functional contracts
+  \item Coq: allows writing formal specification, proving it, and extracting certified program from constructive proof of its specification in OCaml, Haskell, or Scheme.
+  \item Ada
+\end{itemize}
+
+\subsection{Formal verification}
+Explain what it is, particularly Hoare triples.
+Why is it useful?
+
+\subsection{FUSE}
+Why use it for development, what are its limitations?

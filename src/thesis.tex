@@ -1,0 +1,41 @@
+\documentclass[12pt,notitlepage]{article}
+\usepackage[a4paper, top=0.7in, left=0.7in, right=0.7in, bottom=0.7in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{hyperref}
+\usepackage{csquotes}
+\usepackage[style=ieee]{biblatex}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\graphicspath{{images/}{diagrams/}}
+\captionsetup{width=0.8\textwidth,font+=it}
+\addbibresource{references.bib}
+
+\def\theauthor{Alexander Balgavy (2619644)}
+\def\thetitle{Sample Title}
+\def\thedate{\today}
+\def\theinstitution{Vrije Universiteit Amsterdam}
+\def\thesubject{Bachelor Thesis}
+
+\newcommand{\result}[1]{\input{numbers/#1}\unskip}
+\begin{document}
+  \input{titlepage}
+
+  \begin{abstract}
+    Abstract goes here.
+  \end{abstract}
+
+  \input{introduction}
+  \input{background}
+  \input{related}
+  \input{design-implementation}
+  \input{results}
+  \input{conclusion}
+
+  \printbibliography
+
+\end{document}
