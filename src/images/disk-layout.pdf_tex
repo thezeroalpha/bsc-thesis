@@ -1,0 +1,81 @@
+%% Creator: Inkscape 1.0 (4035a4f, 2020-05-01), www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 'disk-layout.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+%%
+\begingroup%
+  \makeatletter%
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}%
+    \renewcommand\color[2][]{}%
+  }%
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}%
+    \renewcommand\transparent[1]{}%
+  }%
+  \providecommand\rotatebox[2]{#2}%
+  \newcommand*\fsize{\dimexpr\f@size pt\relax}%
+  \newcommand*\lineheight[1]{\fontsize{\fsize}{#1\fsize}\selectfont}%
+  \ifx\svgwidth\undefined%
+    \setlength{\unitlength}{360.74998991bp}%
+    \ifx\svgscale\undefined%
+      \relax%
+    \else%
+      \setlength{\unitlength}{\unitlength * \real{\svgscale}}%
+    \fi%
+  \else%
+    \setlength{\unitlength}{\svgwidth}%
+  \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
+  \makeatother%
+  \begin{picture}(1,0.14656964)%
+    \lineheight{1}%
+    \setlength\tabcolsep{0pt}%
+    \put(0,0){\includegraphics[width=\unitlength,page=1]{disk-layout.pdf}}%
+    \put(0.08316009,0.04573804){\color[rgb]{0,0,0}\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}boot block\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=2]{disk-layout.pdf}}%
+    \put(0.24948026,0.04573804){\color[rgb]{0,0,0}\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}superblock\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=3]{disk-layout.pdf}}%
+    \put(0.41580042,0.04573804){\color[rgb]{0,0,0}\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}inode bitmap\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=4]{disk-layout.pdf}}%
+    \put(0.58212059,0.04573804){\color[rgb]{0,0,0}\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}zone bitmap\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=5]{disk-layout.pdf}}%
+    \put(0.74844076,0.04573804){\color[rgb]{0,0,0}\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}inodes\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=6]{disk-layout.pdf}}%
+    \put(0.89397091,0.04573804){\color[rgb]{0,0,0}\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}data.....\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=7]{disk-layout.pdf}}%
+    \put(0.03118503,0.11850311){\color[rgb]{0,0,0}\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}1\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=8]{disk-layout.pdf}}%
+    \put(0.1975052,0.11850311){\color[rgb]{0,0,0}\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}2\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=9]{disk-layout.pdf}}%
+    \put(0.38461539,0.11850311){\color[rgb]{0,0,0}\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}3..n\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=10]{disk-layout.pdf}}%
+    \put(0.55093556,0.11850311){\color[rgb]{0,0,0}\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}n+1..m\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=11]{disk-layout.pdf}}%
+    \put(0.71725573,0.11850311){\color[rgb]{0,0,0}\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}m+1..i\end{tabular}}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=12]{disk-layout.pdf}}%
+    \put(0.8835759,0.11850311){\color[rgb]{0,0,0}\makebox(0,0)[t]{\lineheight{1.25}\smash{\begin{tabular}[t]{c}i+1..s\end{tabular}}}}%
+  \end{picture}%
+\endgroup%

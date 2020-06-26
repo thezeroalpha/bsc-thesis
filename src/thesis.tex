@@ -4,15 +4,29 @@
 \usepackage[english]{babel}
 \usepackage{hyperref}
 \usepackage{csquotes}
-\usepackage[style=ieee]{biblatex}
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage{graphicx}
 \usepackage{caption}
 \usepackage{subcaption}
-
-\graphicspath{{images/}{diagrams/}}
 \captionsetup{width=0.8\textwidth,font+=it}
+
+\usepackage{listings}
+\lstset{captionpos=b, frame=lines, xleftmargin=5em, framextopmargin=0.5em, framexbottommargin=0.5em, aboveskip=1em, belowskip=1em, linewidth=0.8\linewidth}
+\captionsetup[lstlisting]{justification=centering}
+
+\usepackage{graphicx}
+\graphicspath{{images/}{diagrams/}}
+
+\usepackage{import}
+\usepackage{xifthen}
+\usepackage{pdfpages}
+\usepackage{transparent}
+\newcommand{\incfig}[1]{%
+  \def\svgwidth{\columnwidth}
+  \resizebox{0.85\textwidth}{!}{\import{./images/}{#1.pdf_tex}}
+}
+
+\usepackage[style=ieee]{biblatex}
 \addbibresource{references.bib}
 
 \def\theauthor{Alexander Balgavy (2619644)}

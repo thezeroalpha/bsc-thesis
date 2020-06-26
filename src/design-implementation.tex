@@ -1,7 +1,134 @@
 \section{Design \& implementation}
 \begin{itemize}
-  \item Filesystem design: why was MINIX chosen as the basis? Which parts of my filesystem are similar to MINIX? What changes/compromises are made?
-  \item Language features: strong typing, lack of pointers (access types vs in-out parameters), modularisation using packages and private parts
+  \item Language features: strong typing, lack of pointers (access types vs in-out parameters), modularisation using packages and private parts, interfacing with C
   \item FUSE \& the FUSE driver
   \item Verification: contracts (functional and data). Also - what can't be verified (at the moment)?
 \end{itemize}
+
+To explore ways of writing reliable code, a small, prototype filesystem (AdaFS) was implemented using the Ada 2012 programming language.
+Some parts of this filesystem are written in the SPARK 2014 language, which is a subset of Ada that removes features not amenable to formal verification, and defines new aspects to support modular, constructive, formal verification \cite{sparkRM}.
+The AdaCore GNAT Community 2020 package \footnote{\url{https://www.adacore.com/community}} is used, which provides, among others, the compiler and prover tools.
+For testing purposes, a FUSE driver is written in C, and the built executables are linked with libfuse 3.9.2 \footnote{\url{https://github.com/libfuse/libfuse}}.
+The GNAT Project Manager is used to facilitate compilation of source files in different languages and linking of other required libraries.
+
+\subsection{Filesystem design}
+AdaFS is based on the MINIX 2 filesystem \cite{tanenbaum1997}, with some simplifications due to time constraints.
+The MINIX operating system was written by Andrew Tanenbaum as an educational tool, and is compatible with UNIX, but has a more modular structure.
+The MINIX filesystem was chosen as a model because it is not part of the operating system, but rather runs entirely as a user program.
+As such, it is self-contained.
+Furthermore, due to its educational purpose, it is thoroughly commented and easy to understand.
+The second version of the file system was chosen because MINIX 3 is more complex, as it adds numerous improvements (e.g. for reliability) to place emphasis on its use in research and production \cite{minix3history}.
+
+A disk is formatted as an AdaFS filesystem using the \textit{mkfs} executable.
+The resulting disk layout is shown in \autoref{fig:adafs disk layout}.
+The disk is divided into blocks of 1024 bytes, similarly to MINIX.
+Blocks are collected in zones, which can be of size $2^n$ blocks.
+This abstraction of blocks into zones can make it possible to allocate multiple blocks at once.
+
+\begin{figure}[h]
+  \centering
+  \incfig{disk-layout}
+  \caption{AdaFS disk layout. (\textit{n} = number of inode bitmap blocks, \textit{m} = number of zone bitmap blocks, \textit{i} = number of inode blocks, \textit{s} = number of blocks on disk)}
+  \label{fig:adafs disk layout}
+\end{figure}
+
+The disk begins with a boot block that would optionally contain executable code.
+Then, it contains a superblock, and two bitmaps.
+The bitmaps are used for inode and zone allocation, and can potentially span multiple blocks.
+Next, there are a few blocks containing space for inodes, potentially with more than one inode per block.
+Finally, the rest of the blocks contain user data.
+
+The superblock is the second block on the disk, and contains information about the layout of the filesystem.
+In particular, it contains the number of inodes and zones on disk, the number of inode and zone bitmap blocks, the number of the first data zone, the base-2 logarithm of the number of blocks per zone, the maximum file size, and the magic number.
+The magic number used to identify a correctly formatted disk is $\text{CACA}_{16}$; MINIX uses the magic number $2468_{16}$, but AdaFS avoids using the same number because a disk formatted by the AdaFS \textit{mkfs} utility is not necessarily equivalent to a disk formatted by the MINIX \textit{mkfs} utility.
+
+The two bitmaps keep track of available inodes and zones, where the \textit{n}th bit of the inode or zone bitmap corresponds to the \textit{n}th inode or zone on disk, respectively.
+If a bit in the inode bitmap is set to 1, that means the corresponding inode is allocated, and if it is set to 0, the inode is free.
+This is the same for the zone bitmap, pertaining to zones.
+One difference with MINIX is that, in MINIX, the first bit (bit zero) in the bitmaps must always be allocated, as the procedure that searches for a free inode or zone returns zero if no free inode/zone is found.
+In Ada, indexing generally starts at 1, so all bits can be used -- as the first bit is bit one, this does not interfere with the allocation procedure.
+
+The penultimate section of the disk contains inodes; the number of inodes is determined by the size of the disk.
+The inodes have two representations: on-disk (\autoref{fig:inode on disk}) and in-memory (\autoref{fig:inode in memory}).
+This allows the filesystem to make efficient use of disk space, while providing faster access to important values when the inode is loaded in memory.
+There are 10 zones per inode: 7 direct zones (those that contain data), 1 single indirect zone (indicates a block that contains more direct zones), 1 double indirect zone (indicates a block that contains more single indirect zones), and 1 unused zone.
+The unused zone is present for future use, potentially as a triple-indirect zone.
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.49\textwidth}
+    \centering
+    \resizebox{0.8\textwidth}{!}{\incfig{inode-on-disk}}
+    \caption{On disk}
+    \label{fig:inode on disk}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.49\textwidth}
+    \centering
+    \resizebox{0.7\textwidth}{!}{\incfig{inode-in-memory}}
+    \caption{In memory}
+    \label{fig:inode in memory}
+  \end{subfigure}
+  \hfill
+  \caption{Inode representations}
+  \label{fig:inode representations}
+\end{figure}
+
+The final section spans the rest of the blocks on the disk, broken into zones, and is available to store user data.
+It can contain file data, or directory entries.
+
+There are also some in-memory structures for working with open files.
+The filesystem keeps a process table in memory, which is indexed by process ID (PID), and keeps track of inode information for all processes using the filesystem.
+One entry corresponds to one process, and contains the inode numbers for the root and working directories of the process, as well as the list of open file descriptors.
+Each open file descriptor corresponds to an entry in the filesystem's \textit{filp} table, which is shared among all processes and contains all the file position.
+The rationale for a shared file position table comes from MINIX, and is based on problems with the semantics of the \textit{fork} system call \cite{tanenbaum1997}.
+An entry in the filp table contains the number of file descriptors using that entry, the inode number, and the file position for the inode.
+
+Due to time constraints, a number of simplifications were made compared to MINIX.
+In particular, only the features necessary for basic functionality of the system were implemented.
+The filesystem does not cache any information, and there is no in-memory inode table; all data is written directly to disk.
+Furthermore, the current implementation does not keep track of file mode, owner, group, or timestamps.
+This results in a limited filesystem, which nonetheless completes its function as a proof-of-concept.
+
+\subsection{Language features \& implementation specifics}
+\paragraph{Strong typing}
+Ada is a strongly typed language, which helps the programmer distinguish between types that are logically different, even if their underlying representation is the same.
+Furthermore, the compiler will automatically catch any bugs that would be caused by assigning a value of an incorrect type to a variable.
+In order for a value to be assigned to a variable, two constraints must be satisfied: the value and variable must have the same type, and the value must satisfy all constraints on the variable (such as the range for an integral data type) \cite{barnes2014}.
+Conversion between types is allowed, but only if it is explicit, and if the target type is an ancestor of the current type (for example, a positive integer may be converted to an integer, but not vice-versa).
+
+\paragraph{Lack of pointers}
+The C codebase of MINIX makes extensive use of pointers to refer to inodes and other structures in memory, addresses on disk, etc.
+Ada has access types, which are similar to pointers in some ways, but due to the complexity of verifying a program's behavior when it contains pointers, SPARK severly restricts the possibilities of using access types \cite{sparkRM}.
+Thus, alternative methods must be used to provide similar functionality.
+
+One way to solve this is with parameter modes.
+Ada allows specifying the mode of each parameter in a procedure, which designates how the parameter will be used in execution.
+If a parameter is of `in' mode, it is only read in the procedure, and is not modified -- this is the default mode.
+If a parameter is of `out' mode, the value of the parameter before the call is irrelevant, as it will receive a value in the procedure.
+Finally, if a parameter is of `in out' mode, it is both read and updated in the procedure.
+This third mode provides functionality similar to a pointer.
+
+However, SPARK requires that functions be purely functional; that is, they cannot have parameters with a mode of `out' or `in out'.
+Here, two solutions are possible.
+In some cases, it may be preferred to add the return value as an `out' parameter, and convert the function to a procedure.
+In other cases, it is better for the function to return multiple values, which is possible with a record type.
+An example is the function \lstinline{parse_next} in \autoref{code:function returning record}, which returns two values, wrapped in the record type \lstinline{parsed_res_t}.
+
+\begin{lstlisting}[caption={Parse function returning the parsed component and the new cursor position}, label={code:function returning record}, language=Ada]
+subtype cursor_t is Natural range path'Range;
+
+type parsed_res_t is record
+  next : adafs.name_t;
+  new_cursor : cursor_t;
+end record;
+
+function parse_next (
+  path : adafs.path_t;
+  cursor : cursor_t) return parsed_res_t is
+  ...
+end parse_next;
+\end{lstlisting}
+% TODO:
+% mention separating into parts relating to IO (disk), and parts not related. then formally verifying not related parts.
+% also discuss issues with formally verifying disk IO, also compared to a disk image file.
