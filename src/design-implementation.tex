@@ -1,10 +1,4 @@
 \section{Design \& implementation}
-\begin{itemize}
-  \item Language features: strong typing, lack of pointers (access types vs in-out parameters), modularisation using packages and private parts, interfacing with C
-  \item FUSE \& the FUSE driver
-  \item Verification: contracts (functional and data). Also - what can't be verified (at the moment)?
-\end{itemize}
-
 To explore ways of writing reliable code, a small, prototype filesystem (AdaFS) was implemented using the Ada 2012 programming language.
 Some parts of this filesystem are written in the SPARK 2014 language, which is a subset of Ada that removes features not amenable to formal verification, and defines new aspects to support modular, constructive, formal verification \cite{sparkRM}.
 The AdaCore GNAT Community 2020 package \footnote{\url{https://www.adacore.com/community}} is used, which provides, among others, the compiler and prover tools.
@@ -96,6 +90,23 @@ Ada is a strongly typed language, which helps the programmer distinguish between
 Furthermore, the compiler will automatically catch any bugs that would be caused by assigning a value of an incorrect type to a variable.
 In order for a value to be assigned to a variable, two constraints must be satisfied: the value and variable must have the same type, and the value must satisfy all constraints on the variable (such as the range for an integral data type) \cite{barnes2014}.
 Conversion between types is allowed, but only if it is explicit, and if the target type is an ancestor of the current type (for example, a positive integer may be converted to an integer, but not vice-versa).
+An example of the use of types is the definition of a character buffer of arbitrary size, followed by the definitions of different block types including a constrained version of the buffer type, shown in \autoref{code:block type definitions}.
+
+\begin{lstlisting}[caption={Block type definitions}, label={code:block type definitions}, language=Ada]
+type data_buf_t is array (Positive range <>) of Character;
+
+type inode_block_t is array (1..block_size/on_disk'Size) of on_disk;
+type zone_block_t is array (1..n_indirects_in_block) of Natural;
+type dir_entry_block_t is array (1..block_size/direct'Size) of direct;
+subtype data_block_t is data_buf_t (1..data_block_range'Last);
+\end{lstlisting}
+
+\paragraph{Controlled types}
+Controlled types allow the programmer to specify precisely what happens when a variable of a given type is declared, or when it goes out of scope.
+They are not permitted in SPARK, because the compiler inserts implicit calls to allow this functionality \cite{sparkRM}.
+The initialization and destruction of variables of a controlled type is handled with custom \lstinline[language=Ada]{initialize} and \lstinline[language=Ada]{finalize} procedures for the type, thus the compiler needs to ensure these procedures are called in execution.
+However, in AdaFS, controlled types are not used for any filesystem logic, and are only used with disk I/O to make sure that e.g. the variable containing the superblock is initialized properly with the type of I/O the filesystem uses.
+Therefore, this was deemed acceptable for this prototype.
 
 \paragraph{Lack of pointers}
 The C codebase of MINIX makes extensive use of pointers to refer to inodes and other structures in memory, addresses on disk, etc.
@@ -109,13 +120,13 @@ If a parameter is of `out' mode, the value of the parameter before the call is i
 Finally, if a parameter is of `in out' mode, it is both read and updated in the procedure.
 This third mode provides functionality similar to a pointer.
 
-However, SPARK requires that functions be purely functional; that is, they cannot have parameters with a mode of `out' or `in out'.
+However, SPARK requires that functions be purely functional; that is, they cannot have side effects, such as parameters with a mode of `out' or `in out'.
 Here, two solutions are possible.
-In some cases, it may be preferred to add the return value as an `out' parameter, and convert the function to a procedure.
+In some cases, it may be preferred to add the return value as an `out' parameter, and rewrite the function as a procedure.
 In other cases, it is better for the function to return multiple values, which is possible with a record type.
-An example is the function \lstinline{parse_next} in \autoref{code:function returning record}, which returns two values, wrapped in the record type \lstinline{parsed_res_t}.
+An example is the function \lstinline[language=Ada]{parse_next} in \autoref{code:function returning record}, which returns two values, wrapped in the record type \lstinline[language=Ada]{parsed_res_t}.
 
-\begin{lstlisting}[caption={Parse function returning the parsed component and the new cursor position}, label={code:function returning record}, language=Ada]
+\begin{lstlisting}[caption={Parse function returning the parsed component and the new cursor position (ellipses denote code omitted for brevity)}, label={code:function returning record}, language=Ada]
 subtype cursor_t is Natural range path'Range;
 
 type parsed_res_t is record
@@ -123,12 +134,116 @@ type parsed_res_t is record
   new_cursor : cursor_t;
 end record;
 
-function parse_next (
-  path : adafs.path_t;
-  cursor : cursor_t) return parsed_res_t is
+function parse_next
+  (path : adafs.path_t; cursor : cursor_t) return parsed_res_t
+is
   ...
 end parse_next;
 \end{lstlisting}
+
+\paragraph{Modularisation}
+Ada supports modularisation in the form of packages, and forms a single translation unit, which can contain member entities such as subprograms, variables, and types.
+Information hiding is done by defining members as private.
+A package is separated into two parts, which are placed in separate files: the \textit{specification} (the public interface for the package), and the \textit{body} (the implementation).
+The compiler always checks whether the package body matches the specification, and refuses to compile the code if this is not the case.
+\autoref{code:inode specification and body} shows an excerpt of the specification and body of the \lstinline[language=Ada]{adafs.inode} package.
+
+A package can also have child packages: for example, the \lstinline[language=Ada]{adafs.inode} package is a child of the \lstinline[language=Ada]{adafs} package.
+A child package has access to all member entities defined in the specification of its parent(s), including private members.
+
+\begin{lstlisting}[caption={Excerpt from the adafs.inode package specification and body (ellipses denote code omitted for brevity)}, label={code:inode specification and body}, language=Ada]
+-- adafs-inode.ads
+package adafs.inode
+  with SPARK_Mode
+is
+  ...
+  function calc_num_inodes_for_blocks (nblocks : Natural) return Natural
+    with ...;
+end package adafs.inode
+
+-- adafs-inode.adb
+package body adafs.inode
+  with SPARK_Mode
+is
+  function calc_num_inodes_for_blocks
+    (nblocks : Natural) return Natural
+  is
+    inode_max : constant := 65535;
+    i : Natural := nblocks/3;
+  begin
+    ...
+    return i;
+  end calc_num_inodes_for_blocks;
+end adafs.inode;
+\end{lstlisting}
+
+It is also possible to create \textit{generics}.
+Generics are somewhat similar to objects in the OOP paradigm, in that they can be instantiated with parameters.
+However, an important difference is that instantiation can only occur in a declarative region.
+Both subprograms and packages can be generic.
+For example, \autoref{code:generic reading function} shows a generic function for reading data from a disk, and its instantiation.
+As Ada's \lstinline[language=Ada]{Stream_IO} requires specifying the type to be read, using a generic function helps with code reuse, with \lstinline[language=Ada]{elem_t} designating the type to be read, which is passed in at instantiation.
+The downside of generics is that they cannot be analyzed directly by SPARK, but must instead be verified from the context of instantiation (i.e., SPARK mode must be enabled in the package or subprogram that instantiates the generic) \cite{sparkRM}.
+
+\begin{lstlisting}[caption={Generic function for reading a block of type \textnormal{elem\_t}}, label={code:generic reading function}, language=Ada]
+-- disk.ads
+generic
+  type elem_t is private;
+function read_block (num : block_num) return elem_t;
+
+-- disk.adb
+function read_block (num : block_num) return elem_t is
+  result : elem_t;
+begin
+  if not is_reading then
+    sio.set_mode(stream_io_disk_ft, sio.in_file);
+  end if;
+  go_block (num);
+  elem_t'read (stream_io_disk_acc, result);
+  return result;
+end read_block;
+\end{lstlisting}
+
+\paragraph{Interfacing with other languages}
+Ada has a mechanism to allow interfacing with other programming languages, such as Fortran, COBOL, or C.
+This is done by replicating the types and subprogram signatures in Ada.
+The Interfaces library package \footnote{\url{https://www.adaic.org/resources/add_content/standards/05aarm/html/AA-B-2.html}} provides types and subprograms for this purpose.
+For example, for C, there are the Interfaces.C \footnote{\url{http://www.ada-auth.org/standards/12rm/html/RM-B-3.html}} and Interfaces.C.Strings \footnote{\url{http://www.ada-auth.org/standards/12rm/html/RM-B-3-1.html}} packages, which provide the types \lstinline[language=Ada]{chars_ptr} (mirroring \lstinline[language=C]{char*} in C), \lstinline[language=Ada]{int} (mirroring \lstinline[language=C]{int} in C), etc.
+This allows \textit{exporting} subprograms from Ada, and calling them from a C program.
+\autoref{code:interfacing c and ada} shows a specification of a subprogram that is exported to C by specifying the \lstinline[language=Ada]{Export} and \lstinline[language=Ada]{Convention} aspects (as well as an external name to use when calling the subprogram from C).
+The subprogram is then declared as \lstinline[language=C]{extern} in C, and called from the C program's main function.
+Since the main program is written in a language different from Ada, the initialization and finalization procedures (\lstinline[language=C]{adainit(void)} and \lstinline[language=C]{adafinal(void)}) must also be declared and called before and after any other Ada subprograms, respectively.
+The GNAT Project Manager handles compiling and linking of files written in different languages.
+Unfortunately, interfacing code is not amenable to formal verification.
+
+\begin{lstlisting}[caption={Interfacing code written in C and Ada. \textnormal{declarations.adb} is omitted for brevity, but is assumed to contain an implementation of the factorial function conforming to the specification.}, label={code:interfacing c and ada}, language=Ada, alsolanguage=C]
+-- declarations.ads
+with Interfaces.C;
+package Declarations is
+  function Factorial  (n : Interfaces.C.int) return Interfaces.C.int
+    with Export => True,
+         Convention => C,
+         External_Name => "ada_factorial";
+end Declarations;
+
+-- main.c
+#include <stdio.h>
+extern void adainit (void);
+extern void adafinal (void);
+extern int ada_factorial(int n);
+
+int main(int argc, const char *argv[]) {
+  adainit();
+  int n = 5;
+  printf("%d\n", ada_factorial(n)); // 120
+  adafinal();
+}
+\end{lstlisting}
+
+\begin{itemize}
+  \item FUSE \& the FUSE driver
+  \item Verification: contracts (functional and data). Also - what can't be verified (at the moment)?
+    % mention separating into parts relating to IO (disk), and parts not related. then formally verifying not related parts.
+    % also discuss issues with formally verifying disk IO, also compared to a disk image file.
+\end{itemize}
 % TODO:
-% mention separating into parts relating to IO (disk), and parts not related. then formally verifying not related parts.
-% also discuss issues with formally verifying disk IO, also compared to a disk image file.
