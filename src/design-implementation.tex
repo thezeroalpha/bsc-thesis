@@ -240,10 +240,75 @@ int main(int argc, const char *argv[]) {
 }
 \end{lstlisting}
 
-\begin{itemize}
-  \item FUSE \& the FUSE driver
-  \item Verification: contracts (functional and data). Also - what can't be verified (at the moment)?
-    % mention separating into parts relating to IO (disk), and parts not related. then formally verifying not related parts.
-    % also discuss issues with formally verifying disk IO, also compared to a disk image file.
-\end{itemize}
-% TODO:
+\paragraph{FUSE \& the FUSE driver}
+% FIXME: some of this should be in background info
+FUSE is a software interface that allows running filesystem code in userspace, with FUSE bridging the gap between the filesystem and the kernel.
+This simplifies the development of filesystems, because access to the kernel and modification of kernel code is not necessary.
+FUSE allows a filesystem to be developed iteratively; i.e., first it can be implemented and tested with FUSE, and later connected to a kernel if needed.
+
+To implement a filesystem with FUSE, the code needs to be linked with the FUSE library (libfuse), and a driver must be written to specify the filesystem's handler functions for various operations.
+As FUSE is written in C, the driver for AdaFS is currently also written in C, with a wrapper in Ada to convert values between C types and Ada types.
+FUSE specifies a \lstinline[language=C]{struct} with pointers to functions that should be written by the programmer for the specific filesystem they are implemented.
+The library also provides, among others, a function to fill file entries into a buffer, a \lstinline[language=C]{struct} to store open file information, and a function to get the context of the current operation (such as the PID requesting the operation).
+\autoref{code:fuse open} shows an example from the driver, with an implementation of the open file operation.
+
+\begin{lstlisting}[caption={FUSE driver implementation of \textnormal{open}}, label={code:fuse open}, language=C]
+#define FUSE_USE_VERSION 31
+#include <fuse.h>
+// Declare the external filesystem open function written in Ada
+extern int ada_open(const char *path, pid_t pid);
+
+// The driver's open function
+int adafs_open(const char *path, struct fuse_file_info *finfo) {
+  pid_t pid = fuse_get_context()->pid;
+  int fd = ada_open(path, pid);
+  finfo->fh = fd;
+  return 0;
+}
+
+// Register the function with FUSE
+static struct fuse_operations adafs_ops = {
+  .open = adafs_open
+};
+
+int main(int argc, char **argv) {
+  ...
+  return fuse_main(argc, argv, &adafs_ops, NULL);
+}
+\end{lstlisting}
+
+\paragraph{Formal verification}
+Unfortunately, much of the code in its current form is not amenable to formal verification.
+These are namely the parts involving file input and output, and functions that work with C types (i.e. the FUSE driver).
+However, large parts of filesystem logic \textit{are} formally verifiable.
+Therefore, the code base was split into two distinct packages: the \textit{adafs} package, which contains filesystem logic that is strictly in the SPARK language, and the \textit{disk} package, which contains unverifiable elements such as disk I/O.
+The \textit{adafs} package does not include any specifics about the type of disk being used, as the \textit{disk} interface hides implementation details.
+Thus, when needed, and when an alternative is found, the \textit{disk} package can simply be replaced with a verifiable implementation that exposes an identical interface.
+
+For the parts that are formally verifiable, two types of contracts are available: functional and data contracts.
+Functional contracts describe how a subprogram should function; that is, the pre- and post-conditions for a given subprogram.
+They are written as boolean predicate logic expressions.
+Pre-conditions are evaluated before entry into the subprogram, and post-conditions are evaluated after exit from the subprogram (and can therefore mention the subprogram's result).
+SPARK can check these conditions at each call site to ensure that no subprogram call violates the conditions, and that the output(s) are shown to be conformant with the specification (the returned result for a function, and the \lstinline[language=Ada]{out} or \lstinline[language=Ada]{in out} parameters for a procedure).
+
+The second type of contract available are data contracts.
+SPARK conducts flow analysis, which models the flow of information during a subprogram's execution.
+It checks for uninitialized variables, ineffective statements, and incorrect parameter modes.
+It is possible to specify which global variables are read, written, or both read and written in the subprogram, using the \lstinline[language=Ada]{Global} aspect.
+If no global variables are used, the value of the aspect is set to \lstinline[language=Ada]{null}.
+It is also possible to specify data dependencies between a subprogram's inputs and outputs.
+
+For example, \autoref{code:formal verification example} shows a function to get an entry from the process table, which specifies the functional and data contracts to be fulfilled for the function.
+The \lstinline[language=Ada]{Global} aspect specifies that the function only depends on the value of the package variable \lstinline[language=Ada]{tab} for input.
+The \lstinline[language=Ada]{Depends} aspect states that the result of the function only depends on the \lstinline[language=Ada]{tab} and \lstinline[language=Ada]{pid} variables (that is, the variable stated in the \lstinline[language=Ada]{Global} aspect, and the parameter of the function).
+The post-condition states that the \lstinline[language=Ada]{is_null} component of the returned variant record will be set to True if there is no entry in \lstinline[language=Ada]{tab} for the provided PID; otherwise, the inode number of the PIDs working directory will be non-zero.
+With the SPARK toolchain, we can verify that these constraints are all satisfied.
+
+\begin{lstlisting}[caption={Functional and data contracts}, label={code:formal verification example}, language=Ada]
+function get_entry (pid : tab_range) return entry_t with
+  Global => (input => tab),
+  Depends => (get_entry'Result => (tab, pid)),
+  Post => (if tab(pid).is_null
+           then get_entry'Result.is_null
+           else get_entry'Result.workdir > 0);
+\end{lstlisting}

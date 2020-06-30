@@ -1,3 +1,4 @@
 {
-  "references.bib": {"type": "bibliography"}
+  "references.bib": {"type": "bibliography"},
+  "thesis.tex": {"type": "main"}
 }
