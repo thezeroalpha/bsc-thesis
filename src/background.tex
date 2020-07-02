@@ -2,11 +2,27 @@
 \subsection{C as the implementation language}
 The choice of an implementation language may affect the bugs or vulnerabilities that are present in the system.
 The de-facto standard implementation language for operating systems and their components has long been C.
-Many popular file systems are implemented in C, such as Ext4. \cite{ext4source}.
+Many popular file systems are implemented in C, such as Ext4 \cite{ext4source}.
 C is based on typeless languages, BCPL and B, which were developed specifically for operating system programming in early Unix.
-A design principle of C was to be grounded in the operations and data types provided by the computer, while offering abstractions and portability to the programmer. \cite{ritchie1993}
+A design principle of C was to be grounded in the operations and data types provided by the computer, while offering abstractions and portability to the programmer \cite{ritchie1993}.
+Due to its history, and because C compilers exist for essentially any processor, C is the natural choice for systems programming.
 
-Describe studies on issues with C, bugs found, CVEs, etc.
+However, many of the characteristics that make C flexible and versatile also place more responsibility on the programmer to ensure that the resulting code is bug-free.
+The permissiveness of C means that, especially in a large codebase, bugs are hard to avoid and often even harder to troubleshoot.
+In the worst case, errors in the code allowing null pointer dereferences or buffer overflows can lead to serious security vulnerabilities affecting thousands of devices \cite{cert2001}.
+In 2017, Ray et al. analyzed 850 projects across 17 different programming languages, and found that those with unmanaged memory, such as C, introduce more memory errors \cite{ray2017}.
+Furthermore, C introdced 19.15\% of concurrency errors.
+Another study conducted by WhiteSource found that C has the highest vulnerabilities out of all seven analyzed languages, with 50\% of all reported vulnerabilities in ten years \cite{whitesource2019}.
+Of course, it is important to note that this is in part because more code has been written in C than in any other language, and because C has been in use for much longer than most other languages.
+WhiteSource note that buffer errors, with the Common Weakness Enumeration (CWE) number CWE-119, are by far the most common security vulnerability in C code.
+
+Specifically in filesystems, a study of 157 cases reported to the Common Vulnerabilities and Exposures (CVE) database between the years 1999 and 2019 was conducted, covering a variety of filesystems including Ext4 and XFS \cite{cai2019}.
+Cai et al. found that errors that cause denial of service account for 75\% of all vulnerabilities.
+They concluded that the four largest causes of denial of service are kernel crashes (35\% of vulnerabilities), memory corruption (16\% of vulnerabilities), memory consumption (13\%), and system hang (9\%).
+Kernel crashes and memory corruption can be caused by exploiting invalid pointer dereferences or out-of-bounds memory access, and memory consumption is caused by not properly freeing allocated objects.
+
+In summary, although C is the `traditional' systems programming language, code written in C can be error prone and lead to issues, unless the programmer is aware of the issues and takes explicit steps to prevent them.
+It would be beneficial to find a better method,  a way to write more reliable systems with less burden resting on the programmer.
 
 \subsection{Possible alternatives}
 \begin{itemize}

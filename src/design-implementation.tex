@@ -77,6 +77,7 @@ One entry corresponds to one process, and contains the inode numbers for the roo
 Each open file descriptor corresponds to an entry in the filesystem's \textit{filp} table, which is shared among all processes and contains all the file position.
 The rationale for a shared file position table comes from MINIX, and is based on problems with the semantics of the \textit{fork} system call \cite{tanenbaum1997}.
 An entry in the filp table contains the number of file descriptors using that entry, the inode number, and the file position for the inode.
+% TODO: maybe add here an example of inode lookup for the read() call
 
 Due to time constraints, a number of simplifications were made compared to MINIX.
 In particular, only the features necessary for basic functionality of the system were implemented.
@@ -312,3 +313,4 @@ function get_entry (pid : tab_range) return entry_t with
            then get_entry'Result.is_null
            else get_entry'Result.workdir > 0);
 \end{lstlisting}
+
