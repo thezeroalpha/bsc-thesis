@@ -1,6 +1,60 @@
 \section{Related work}
-\subsection{FSCQ}
-\subsection{Yxv6 \& Yggdrasil}
-\subsection{Argosy}
+In this section we summarise the existing body of work relating to formal verification of filesystems.
+
+\subsection{Flashix}
+In 2014, Schellhorn et al. presented their work on a verified Flash filesystem \cite{schellhorn2014}.
+Since Flash memory can only be written sequentially, and data in Flash memory cannot be overwritten in place (i.e. space can only be reused by erasing entire blocks), a special Flash file system must be used that is designed to work with Flah memory.
+Flashix, the verified Flash filesystem they developed, is based on UBIFS.
+They refined the high-level POSIX system interface using a Virtual Filesystem Switch (VFS) that maps POSIX operations to one or more Abstract File System (AFS) operations; the AFS is a model that captures the functional behavior of a specific filesystem \cite{ernst2012}.
+The reason for this separation is that specific filesystems do not implement generic functionality, but instead satisfy an internal interface.
+To provide safety for crashes, power cuts, and other such events, they used a transactional journal providing atomic writes \cite{ernst2015}.
+They verifed the code using the KIV interactive theorem prover, whose specification language is based on Abstract State Machines and Abstract State Machine refinement.
+They then used tools to generate a Scala implementation, which could be mounted using the FUSE library and executed on the Java Virtual Machine.
+
 \subsection{COGENT}
+COGENT is a new, restricted language developed by Amani et al. \cite{amani2016}, as an approach to writing and formally verifying high-assurance filesystem code.
+It was designed to bridge the gap between the formal specification of a program and its low-level implementation, and to allow programmers that do not have a background in formal verification to provably avoid common errors.
+Many of the characteristics required to guarantee the absence of common filesystem implementation errors were encoded in the language, which is strongly typed, type safe, and uses a linear type system (meaning that every variable must be used exactly once).
+The compiler for the language generates C code and translation correctness proofs, enforces memory safety, and forbids undefined behavior in C code (such as null pointer dereferences or buffer overflows).
+In evaluation, they found that code generated from COGENT has throughput that is almost identical to a C implementation, albeit with slightly increased CPU usage.
+The disadvantage is that programmers were required to learn a new language (which has a functional style and whose type system is less common) solely for the development of a filesystem, though the authors state that these were not major barriers.
+
+\subsection{Recon}
+Fryer et al. found that filesystem bugs that severly corrupt metadata are common, and that solutions to the necessary recovery procedures were unsatisfactory.
+Therefore, they developed Recon, a system to protect filesystem metadata from arbitrary implementation bugs \cite{fryer2012}.
+Recon sits between the filesystem and the block layer, and checks consistency invariants at commit points before allowing writes to disk.
+Thus, failures that would be silent become detectable violations of these invariants.
+Consistency invariants are declarative statements that must be satisfied before data is committed to disk, otherwise the filesystem may become corrupted.
+The authors use the consistency rules used by a file system checker (\textit{e2fsck} in their implementation) to derive the invariants.
+Consequently, the system can detect random corruption at runtime as effectively as a filesystem checker.
+In essence, Recon can conduct online checks similar to those conducted by offline filesystem checkers (e.g. \textit{fsck}).
+
+\subsection{FSCQ \& DFSCQ}
+FSCQ was the first file system that has a machine-checkable proof (as opposed to an interactive proof) that its specification and implementation match, and whose specification included crashes \cite{chen2015}.
+Chen et al. found that to achieve their design goals of atomic system calls, preventing real bugs, enabling proof automation, and allowing modularity, an extended variant of Hoare logic worked best.
+Accordingly, they developed Crash Hoare logic, which allows programmers to write a specification of the behavior of a storage system in the face of a crash, and to prove them correct (i.e. if a computer crashes, the storage system will reboot into a state consistent with its specification).
+This extension of Hoare logic takes into account the fact that during a crash, a procedure may stop at any point, and that recovery procedures may run.
+The filesystem uses FscqLog, a write-ahead log also certified with Crash Hoare logic, which provides atomic transactions on top of asynchronous disk writes.
+FSCQ was developed with the same features as the educational xv6 filesystem, which implements the Unix v6 filesystem with write-ahead logging.
+The implementation used the Coq proof assistant, and generated Haskell code, which could be mounted with the FUSE library and a Haskell driver.
+Based on FSCQ, DFSCQ (Deferred-write FSCQ) was later written to provide a precise specification for \textit{fsync} and \textit{fdatasync} in the case of log-bypass writes \cite{chen2017}.
+Deferring writing data to persistent storage allow filesystem to achieve high I/O performance, and DFSCQ's implementation would provide crash safety for these operations.
+In building DFSCQ, the authors presented a tree-based approach to specifying filesystem behavior, and a metadata-prefix specification to specify behavior for crashes.
+Compared to FSCQ, DFSCQ has several optimisations and provides a number of missing features.
+
+\subsection{Yggdrasil \& Yxv6}
+In 2016, Sigurbjarnarson et al. presented Yggdrasil, a toolkit which uses a push-button approach to formal verification \cite{sigurbjarnarson2016}.
+Yggdrasil does not require manual annotations or proofs, and aids programmers by producing counterexamples for failed verification constraints.
+To achieve this, the authors used \textit{crash refinement}, i.e. that the set of all disk states reachable in the implementation must be a subset of those allowed in the specification.
+Push-button verification means that Yggdrasil asks the programmer to enter the specification of the expected behavior, the implementation, and any consistency invariants for the state of the filesystem image, and it then checks if the implementation meets the specification while satisfying the invariants.
+All three inputs are written in the same language (a subset of Python), and Yggdrasil generates C code, which is compiled to an executable filesystem and can be mounted using the FUSE library.
+The authors used Yggdrasil to implement a journaling filesystem, Yxv6, which is similar to xv6 and FSCQ, as well as a file copy utility (Ycp) and a persistent log (Ylog).
+
+\subsection{Argosy}
+Argosy is a framework to allow machine-checked verification of storage systems, and introduces recovery refinement, which is a set of conditions that guarantee that an implementation of an interface with a recovery procedure is correct \cite{chajed2019}.
+Recovery refinement ensures correctness for anything using the specification, and can compose with other refinements to prove that an entire system is correct.
+Its semantics are formulated in Kleene algebra.
+The system implements Crash Hoare logic, which was introduced by and used in FSCQ, to prove recovery refinement.
+Therefore, the authors produce a verified transactional disk API for unreliable disks.
+Similarly to FSCQ, the code is verified using the Coq proof assistant, and produces Haskell code.
 
