@@ -70,7 +70,23 @@ Program extraction is conducted via a constructive proof of its specification.
 For example, the CompCert compiler\footnote{\url{http://compcert.inria.fr/compcert-C.html}} for almost the entirety of the C language is largely programmed and proved using Coq.
 
 \paragraph{Ada}
-Finally, write here about Ada.
+In 1975, the US Department of Defence (DoD) established the ``Common High Order Language'' program \cite{wheeler1997}.
+Their goal was to select one high order programming language appropriate for their embedded computer systems.
+A group was created to formulate the requirements for the language, to evaluate existing languages in relation to those requirements, and to select (or implement) the languages.
+The final, refined version of these requirements received the name Steelman.
+Ada (Ada83) was specifically designed to meet these requirements, as no other language satisfied them at the time.
+The Steelman requirements include requirements regarding the maintainability of the language, efficiency, strong typing, and machine independence, among others.
+For example, requirement 1B (reliability) states that, ``the language shall be designed to avoid error prone features and to maximize automatic detection of programming errors'' \cite{wheeler1997}.
+Wheeler found that Ada95 satisfies 93\% of the requirements, while C satisfies only 53\% (though it is natural that Ada should satisfy more requirements, given its original purpose).
+Ada has since changed, with subsequent versions imposing fewer restrictions, becoming supersets of the original version (Ada85).
+For example, requirement 5D (not permitting access to subprograms) is no longer satisfied in Ada95, because the requirements were found to be too restrictive \cite{wheeler1997}.
+However, Ada still meets the majority of these requirements.
+
+Ada has been used successfully in a number of real-world applications that require high reliability and security.
+For example, in aviation, it has been used in air traffic management systems for the Netherlands and Germany, and Praxis chose AdaCore's GNAT Pro and SPARK as the implementation language for the UK's Interim Future Area Control Tools Support air traffic control system \cite{adacore2007}.
+It has been used in the Airbus 380 aircraft \cite{feldman2014}, and almost all of the systems in the Boeing 777 jet plane are written in Ada \cite{adaicBoeing}; when Honeywell conducted a study into the benefits of Ada versus C, they concluded that due to Ada's built-in safety features and its accuracy during compilation, less time, expense, and concern would be spent on debugging \cite{adaicBoeing}.
+Ada has been used in space exploration: it was used in the Atlas V rocket (known for launching NASA's Mars Reconnaissance Orbiter\footnote{\url{https://www.nasa.gov/home/hqnews/2005/aug/HQ_05218_MRO_success.html}} and New Horizons\footnote{\url{http://pluto.jhuapl.edu/News-Center/Resources/Press-Kits/011607_JupiterPressKit.pdf}} missions), and aboard scientific space vehicles such as the International Space Station, NASA's CloudSat, and the European Space Agency's Huygens probe \cite{feldman2014}.
+It has also been used in railway transport, e.g. for the European Train Control System and the TGV (whose software was converted from C to Ada).
 
 \subsection{Formal verification}
 Explain what it is, particularly Hoare triples.
