@@ -22,16 +22,55 @@ They concluded that the four largest causes of denial of service are kernel cras
 Kernel crashes and memory corruption can be caused by exploiting invalid pointer dereferences or out-of-bounds memory access, and memory consumption is caused by not properly freeing allocated objects.
 
 In summary, although C is the `traditional' systems programming language, code written in C can be error prone and lead to issues, unless the programmer is aware of the issues and takes explicit steps to prevent them.
-It would be beneficial to find a better method,  a way to write more reliable systems with less burden resting on the programmer.
+Even a simple ``Hello World'' program exposes some of the most dangerous features of the language \cite{milewski}.
+Therefore, it would be beneficial to find a better method, a way to write more reliable systems with less burden resting on the programmer.
 
-\subsection{Possible alternatives}
-\begin{itemize}
-  \item Restricting C: MISRA-C, Frama-C
-  \item Rust: esp. reference ownership
-  \item D: allows functional contracts
-  \item Coq: allows writing formal specification, proving it, and extracting certified program from constructive proof of its specification in OCaml, Haskell, or Scheme.
-  \item Ada
-\end{itemize}
+\subsection{Possible alternatives to C}
+Given the issues with C code, what alternatives are there?
+It is possible to subset C and allow only statements or expressions considered suitable for reliable software, or perhaps instead of retroactively imposing restrictions on a language, it would be more beneficial to use a language designed with safety properties in mind.
+
+\paragraph{Restricting C}
+One option is to use a restricted version of C.
+MISRA C is a coding standard which was initially aimed at the automotive sector (with MISRA standing for the Motor Industry Software Reliability Association), but which later spread to other sectors that require safety and security in C code \cite{bagnara2018}.
+Originally supported by the UK government, the goal of the MISRA project was to develop best practice guidelines for reliable software, and the guidelines also deeply influenced NASA's coding standards.
+These guidelines prescribe restricting a ``standardized structured language'' to a subset of its operations, banning non-definitie behavior and constraining implementation-defined behavior and compiler extensions.
+They come in the form of directives (specifications for information that is not fully contained in the code, such as requirements or design) and rules (specifications for code).
+Every guideline is in one of three categories: mandatory (the code must comply with the guideline), required (the code shall comply with the guideline, and a formal deviation description is required if this is not the case), and advisory (the code should comply with the guideline; formal description of a deviation is not required, but the deviation should be documented).
+If a piece of C code follows these guidelines, it is easier to verify that safety and security properties hold.
+
+Another approach is Frama-C, a collection of plugins that perform a series of checks (static analysis, deductive verification, testing) on C programs \cite{cuoq2012}.
+Frama-C uses the ACSL formal specification language, and extends CIL (a C front-end that normalises ISO C99 programs such that loop constructs have a single form, expressions are free from side-effects, etc.) to support ACSL annotations in the source code.
+The annotations describe the functional properties of C programs, stating the pre-conditions a function requires from its caller and the post-conditions it ensures when returning.
+There is also a clause to specify which memory locations are assigned by the function.
+Furthermore, it is possible to insert annotations directly into the code, as assertions.
+
+\paragraph{The D language}
+D is a multi-paradigm language for systems programming that is compatible with the C application binary interface, and has a direct interface to the operating system APIs and hardware \cite{dlangTour}.
+It is statically typed, and allows programming with contracts.
+Specifically, programmers can define assertions, and pre- and post-conditions, which take the form of boolean expressions or blocks of arbitrary code \cite{dlangContracts}.
+D also allows the definition of invariants -- properties of classes or structs that must always be true \cite{dlangContracts}.
+It is possible to use the \textit{pure} keyword to ensure that a function does not access (read or write) any global mutable state, and to preserve referential transparency, function parameters can be marked as immutable \cite{nadlinger2012}.
+Moreover, D has a memory-safe subset, called SafeD, which also removes undefined behavior.
+The design team expects the majority of programmers to operate within SafeD \cite{milewski}.
+
+\paragraph{Rust}
+Rust is a relatively new project that attempts to compete with languages such as C as C++ in the systems development space, while putting the largest emphasis on safety \cite{hoare2010}.
+It ensures static safety by forbidding wild and null pointers, and functions are pure by default.
+All errors cause failure, and task failures are non-recoverable.
+The static rules can be broken in code, but only if this is explicitly authorised in the code.
+There is no shared mutable state, and the language has strict ownership rules where each value has exactly one owner at any time \cite{klabnik2019}.
+Rust has already been used for several large projects, including the Stratis storage management system\footnote{\url{https://stratis-storage.github.io/}} and the Redox microkernel operating system\footnote{\url{https://www.redox-os.org/}}.
+
+\paragraph{Coq}
+Coq is an interactive theorem prover for development of mathematical proofs, and for verification of programs with respect to their formal specifications \cite{coqRM}.
+Specifications are written in the Gallina language, whose terms can represent programs, properties of the programs, and proofs of the properties.
+All three of these are formalised in the Calculus of Inductive Constructions, which is a lambda-calculus with a rich type system.
+Coq can be used to build certified programs that are relatively efficient, and programs can be extracted in the functional languages OCaml, Haskell, and Scheme.
+Program extraction is conducted via a constructive proof of its specification.
+For example, the CompCert compiler\footnote{\url{http://compcert.inria.fr/compcert-C.html}} for almost the entirety of the C language is largely programmed and proved using Coq.
+
+\paragraph{Ada}
+Finally, write here about Ada.
 
 \subsection{Formal verification}
 Explain what it is, particularly Hoare triples.

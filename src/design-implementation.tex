@@ -1,8 +1,8 @@
 \section{Design \& implementation}
 To explore ways of writing reliable code, a small, prototype filesystem (AdaFS) was implemented using the Ada 2012 programming language.
 Some parts of this filesystem are written in the SPARK 2014 language, which is a subset of Ada that removes features not amenable to formal verification, and defines new aspects to support modular, constructive, formal verification \cite{sparkRM}.
-The AdaCore GNAT Community 2020 package \footnote{\url{https://www.adacore.com/community}} is used, which provides, among others, the compiler and prover tools.
-For testing purposes, a FUSE driver is written in C, and the built executables are linked with libfuse 3.9.2 \footnote{\url{https://github.com/libfuse/libfuse}}.
+The AdaCore GNAT Community 2020 package\footnote{\url{https://www.adacore.com/community}} is used, which provides, among others, the compiler and prover tools.
+For testing purposes, a FUSE driver is written in C, and the built executables are linked with libfuse 3.9.2\footnote{\url{https://github.com/libfuse/libfuse}}.
 The GNAT Project Manager is used to facilitate compilation of source files in different languages and linking of other required libraries.
 
 \subsection{Filesystem design}
@@ -208,8 +208,8 @@ end read_block;
 \paragraph{Interfacing with other languages}
 Ada has a mechanism to allow interfacing with other programming languages, such as Fortran, COBOL, or C.
 This is done by replicating the types and subprogram signatures in Ada.
-The Interfaces library package \footnote{\url{https://www.adaic.org/resources/add_content/standards/05aarm/html/AA-B-2.html}} provides types and subprograms for this purpose.
-For example, for C, there are the Interfaces.C \footnote{\url{http://www.ada-auth.org/standards/12rm/html/RM-B-3.html}} and Interfaces.C.Strings \footnote{\url{http://www.ada-auth.org/standards/12rm/html/RM-B-3-1.html}} packages, which provide the types \lstinline[language=Ada]{chars_ptr} (mirroring \lstinline[language=C]{char*} in C), \lstinline[language=Ada]{int} (mirroring \lstinline[language=C]{int} in C), etc.
+The Interfaces library package\footnote{\url{https://www.adaic.org/resources/add_content/standards/05aarm/html/AA-B-2.html}} provides types and subprograms for this purpose.
+For example, for C, there are the Interfaces.C\footnote{\url{http://www.ada-auth.org/standards/12rm/html/RM-B-3.html}} and Interfaces.C.Strings\footnote{\url{http://www.ada-auth.org/standards/12rm/html/RM-B-3-1.html}} packages, which provide the types \lstinline[language=Ada]{chars_ptr} (mirroring \lstinline[language=C]{char*} in C), \lstinline[language=Ada]{int} (mirroring \lstinline[language=C]{int} in C), etc.
 This allows \textit{exporting} subprograms from Ada, and calling them from a C program.
 \autoref{code:interfacing c and ada} shows a specification of a subprogram that is exported to C by specifying the \lstinline[language=Ada]{Export} and \lstinline[language=Ada]{Convention} aspects (as well as an external name to use when calling the subprogram from C).
 The subprogram is then declared as \lstinline[language=C]{extern} in C, and called from the C program's main function.
