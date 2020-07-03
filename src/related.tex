@@ -3,12 +3,12 @@ In this section we summarise the existing body of work relating to formal verifi
 
 \subsection{Flashix}
 In 2014, Schellhorn et al. presented their work on a verified Flash filesystem \cite{schellhorn2014}.
-Since Flash memory can only be written sequentially, and data in Flash memory cannot be overwritten in place (i.e. space can only be reused by erasing entire blocks), a special Flash file system must be used that is designed to work with Flah memory.
+Since Flash memory can only be written sequentially, and data in Flash memory cannot be overwritten in place (i.e. space can only be reused by erasing entire blocks), a special Flash file system must be used that is designed to work with Flash memory.
 Flashix, the verified Flash filesystem they developed, is based on UBIFS.
 They refined the high-level POSIX system interface using a Virtual Filesystem Switch (VFS) that maps POSIX operations to one or more Abstract File System (AFS) operations; the AFS is a model that captures the functional behavior of a specific filesystem \cite{ernst2012}.
 The reason for this separation is that specific filesystems do not implement generic functionality, but instead satisfy an internal interface.
 To provide safety for crashes, power cuts, and other such events, they used a transactional journal providing atomic writes \cite{ernst2015}.
-They verifed the code using the KIV interactive theorem prover, whose specification language is based on Abstract State Machines and Abstract State Machine refinement.
+They verified the code using the KIV interactive theorem prover, whose specification language is based on Abstract State Machines and Abstract State Machine refinement.
 They then used tools to generate a Scala implementation, which could be mounted using the FUSE library and executed on the Java Virtual Machine.
 
 \subsection{COGENT}
@@ -20,7 +20,7 @@ In evaluation, they found that code generated from COGENT has throughput that is
 The disadvantage is that programmers were required to learn a new language (which has a functional style and whose type system is less common) solely for the development of a filesystem, though the authors state that these were not major barriers.
 
 \subsection{Recon}
-Fryer et al. found that filesystem bugs that severly corrupt metadata are common, and that solutions to the necessary recovery procedures were unsatisfactory.
+Fryer et al. found that filesystem bugs that severely corrupt metadata are common, and that solutions to the necessary recovery procedures were unsatisfactory.
 Therefore, they developed Recon, a system to protect filesystem metadata from arbitrary implementation bugs \cite{fryer2012}.
 Recon sits between the filesystem and the block layer, and checks consistency invariants at commit points before allowing writes to disk.
 Thus, failures that would be silent become detectable violations of these invariants.

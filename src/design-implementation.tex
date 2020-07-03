@@ -111,7 +111,7 @@ Therefore, this was deemed acceptable for this prototype.
 
 \paragraph{Lack of pointers}
 The C codebase of MINIX makes extensive use of pointers to refer to inodes and other structures in memory, addresses on disk, etc.
-Ada has access types, which are similar to pointers in some ways, but due to the complexity of verifying a program's behavior when it contains pointers, SPARK severly restricts the possibilities of using access types \cite{sparkRM}.
+Ada has access types, which are similar to pointers in some ways, but due to the complexity of verifying a program's behavior when it contains pointers, SPARK severely restricts the possibilities of using access types \cite{sparkRM}.
 Thus, alternative methods must be used to provide similar functionality.
 
 One way to solve this is with parameter modes.

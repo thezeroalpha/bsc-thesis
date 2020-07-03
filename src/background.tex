@@ -11,7 +11,7 @@ However, many of the characteristics that make C flexible and versatile also pla
 The permissiveness of C means that, especially in a large codebase, bugs are hard to avoid and often even harder to troubleshoot.
 In the worst case, errors in the code allowing null pointer dereferences or buffer overflows can lead to serious security vulnerabilities affecting thousands of devices \cite{cert2001}.
 In 2017, Ray et al. analyzed 850 projects across 17 different programming languages, and found that those with unmanaged memory, such as C, introduce more memory errors \cite{ray2017}.
-Furthermore, C introdced 19.15\% of concurrency errors.
+Furthermore, C introduced 19.15\% of concurrency errors.
 Another study conducted by WhiteSource found that C has the highest vulnerabilities out of all seven analyzed languages, with 50\% of all reported vulnerabilities in ten years \cite{whitesource2019}.
 Of course, it is important to note that this is in part because more code has been written in C than in any other language, and because C has been in use for much longer than most other languages.
 WhiteSource note that buffer errors, with the Common Weakness Enumeration (CWE) number CWE-119, are by far the most common security vulnerability in C code.
@@ -33,7 +33,7 @@ It is possible to subset C and allow only statements or expressions considered s
 One option is to use a restricted version of C.
 MISRA C is a coding standard which was initially aimed at the automotive sector (with MISRA standing for the Motor Industry Software Reliability Association), but which later spread to other sectors that require safety and security in C code \cite{bagnara2018}.
 Originally supported by the UK government, the goal of the MISRA project was to develop best practice guidelines for reliable software, and the guidelines also deeply influenced NASA's coding standards.
-These guidelines prescribe restricting a ``standardized structured language'' to a subset of its operations, banning non-definitie behavior and constraining implementation-defined behavior and compiler extensions.
+These guidelines prescribe restricting a ``standardized structured language'' to a subset of its operations, banning non-definite behavior and constraining implementation-defined behavior and compiler extensions.
 They come in the form of directives (specifications for information that is not fully contained in the code, such as requirements or design) and rules (specifications for code).
 Every guideline is in one of three categories: mandatory (the code must comply with the guideline), required (the code shall comply with the guideline, and a formal deviation description is required if this is not the case), and advisory (the code should comply with the guideline; formal description of a deviation is not required, but the deviation should be documented).
 If a piece of C code follows these guidelines, it is easier to verify that safety and security properties hold.
@@ -78,7 +78,7 @@ Ada (Ada83) was specifically designed to meet these requirements, as no other la
 The Steelman requirements include requirements regarding the maintainability of the language, efficiency, strong typing, and machine independence, among others.
 For example, requirement 1B (reliability) states that, ``the language shall be designed to avoid error prone features and to maximize automatic detection of programming errors'' \cite{wheeler1997}.
 Wheeler found that Ada95 satisfies 93\% of the requirements, while C satisfies only 53\% (though it is natural that Ada should satisfy more requirements, given its original purpose).
-Ada has since changed, with subsequent versions imposing fewer restrictions, becoming supersets of the original version (Ada85).
+Ada has since changed, with subsequent versions imposing fewer restrictions, becoming supersets of the original version (Ada83).
 For example, requirement 5D (not permitting access to subprograms) is no longer satisfied in Ada95, because the requirements were found to be too restrictive \cite{wheeler1997}.
 However, Ada still meets the majority of these requirements.
 
@@ -106,5 +106,16 @@ On the other hand, \textit{total correctness} requires that the program terminat
 Partial correctness is introduced because in some cases, proving total correctness is made easier by first proving partial correctness and then proving termination.
 Proof rules and calculi exist to prove partial and total correctness, and the aim is for these proofs to be carried out automatically by prover tools.
 
-\subsection{FUSE}
-Why use it for development, what are its limitations?
+\subsection{Filesystem in Userspace (FUSE)}
+FUSE, an acronym for Filesystem in Userspace, is a library that allows mounting filesystems in userspace.
+It consists of two parts: a kernel part, and a user-level daemon \cite{vangoor2017}.
+The kernel part is a Linux kernel module that registers a \textit{fuse} filesystem and a block device at \textit{/dev/fuse}.
+In general, the daemon reads requests from, and writes replies to, this block device.
+FUSE essentially acts as an interface between the mounted filesystem and the kernel.
+When an application makes a request to the FUSE-mounted filesystem, FUSE calls the appropriate handler function of the mounted filesystem, and sends the filesystem's reply back to the application.
+
+The advantage of this approach is that filesystem development can be done in userspace; i.e., no integration with the kernel is necessary.
+The filesystem only needs to implement the handlers required by FUSE.
+This makes the development of a new filesystem much easier, as it is not necessary to worry about kernel-specific elements, or other such issues.
+However, the disadvantage is that the filesystem may incur performance degradation; if the workload is among those unfriendly to FUSE, its performance may be degraded by up to 83\% \cite{vangoor2017}.
+In summary, for a system that requires maximum efficiency and reliability, a different solution may be better, but for development, FUSE remains a powerful tool.
