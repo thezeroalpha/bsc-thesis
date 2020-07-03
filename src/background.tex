@@ -2,7 +2,7 @@
 \subsection{C as the implementation language}
 The choice of an implementation language may affect the bugs or vulnerabilities that are present in the system.
 The de-facto standard implementation language for operating systems and their components has long been C.
-Many popular file systems are implemented in C, such as Ext4 \cite{ext4source}.
+Many popular file systems are implemented in C, such as Ext4 \cite{ext4code}.
 C is based on typeless languages, BCPL and B, which were developed specifically for operating system programming in early Unix.
 A design principle of C was to be grounded in the operations and data types provided by the computer, while offering abstractions and portability to the programmer \cite{ritchie1993}.
 Due to its history, and because C compilers exist for essentially any processor, C is the natural choice for systems programming.
@@ -89,8 +89,22 @@ Ada has been used in space exploration: it was used in the Atlas V rocket (known
 It has also been used in railway transport, e.g. for the European Train Control System and the TGV (whose software was converted from C to Ada).
 
 \subsection{Formal verification}
-Explain what it is, particularly Hoare triples.
-Why is it useful?
+Chen et al. say that provably correct software has been a long-term goal of computer science \cite{chen2015}.
+Formal verification is the only way to guarantee this, but though its applications in the area of filesystems have recently increased, it is not yet at the same level of detail and assurance as in other domains \cite{amani2016}.
+Amani et al. argue that removing human intervention in the verification process is a key step \cite{amani2016}.
+
+Parts of a program (namely subprograms) begin running in a state of the host machine.
+After some computation, they might terminate, and they do so in another state (that is usually different from the original).
+This state transition can be represented by the Hoare triple, which forms the basis for most verification systems:
+
+$$(\!|\phi|\!) P (\!|\psi|\!)$$
+
+In essence, the above means that if the (sub)program $P$ runs in a state satisfying $\phi$, the state after $P$'s execution will satisfy $\psi$ \cite{huth2004}.
+$\phi$ is the pre-condition of $P$, and $\psi$ is the post-condition.
+The triple is satisfied under \textit{partial correctness} if for all states satisfying $\phi$, the state after $P$ satisfies $\psi$, and $P$ terminates (thus, if $P$ does not terminate, it satisfies its specification).
+On the other hand, \textit{total correctness} requires that the program terminates, so an infinite loop does not satisfy any specification.
+Partial correctness is introduced because in some cases, proving total correctness is made easier by first proving partial correctness and then proving termination.
+Proof rules and calculi exist to prove partial and total correctness, and the aim is for these proofs to be carried out automatically by prover tools.
 
 \subsection{FUSE}
 Why use it for development, what are its limitations?
