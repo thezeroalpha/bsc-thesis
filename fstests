@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+mountpoint="$1"
+[ -d "$1" ] || { echo "Mountpoint $1 does not exist" && exit 1; }
+
+create30() {
+  { for i in {1..30}; do touch "$mountpoint/file$i"; done; } &>/dev/null
+}
+delete30() {
+  { for i in {1..30}; do rm "$mountpoint/file$i"; done; } &>/dev/null
+}
+
+createdelete() {
+  { touch "$mountpoint/newfile"; rm "$mountpoint/newfile"; } &>/dev/null
+}
+
+write_and_read() {
+  read -r data <<-EOF
+Unfortunately, that is wrong; on the contrary, the joking kite comes from a
+crinite ceiling. This is not to discredit the idea that before bumpers, trains
+were only forces. To be more specific, few can name an afoot fox that isn't an
+unploughed creature. This could be, or perhaps a valgus nail is a patio of the
+mind.
+
+Cormous hails show us how trout can be step-sisters. The zeitgeist contends
+that some posit the stirless fountain to be less than baseless. A bull is a
+dormant butane. It's an undeniable fact, really; one cannot separate quivers
+from longer stations. A nimbused octopus without guns is truly a ethernet of
+splanchnic boats.
+
+Those weathers are nothing more than comforts. Grenades are idling eases.
+However, the shades could be said to resemble drowsy steps. One cannot separate
+dancers from sequent nancies. However, a karen is an edge from the right
+perspective.
+
+In modern times the butane is a tiger. Though we assume the latter, the upstair
+half-brother reveals itself as a stalworth composition to those who look. This
+could be, or perhaps the brashy january reveals itself as an acold parade to
+those who look.
+
+We can assume that any instance of a secretary can be construed as an idlest
+nerve. A finger is a trappy dibble. Those sampans are nothing more than knots.
+EOF
+{ printf "%s" "$data" > "$mountpoint/wfile";
+  cat "$mountpoint/wfile"; } &>/dev/null;
+}
+
+cr() {
+  printf '%s\n' "---"
+}
+
+echo "create 30 files:"; time create30; cr
+echo "delete 30 files:"; time delete30; cr
+echo "create and delete a file:"; time createdelete; cr
+echo "write data and read them:"; time write_and_read; cr
+

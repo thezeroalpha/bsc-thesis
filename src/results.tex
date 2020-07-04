@@ -3,5 +3,88 @@
   \item Include the formal verification report, what's verified in relation to CWE numbers.
   \item Add some performance analysis. Maybe timing? Try to do some common filesystem tasks \& see how it performs?
   \item An idea is to try to test the speed of operations, the key is to show what difference the formal verification makes in terms of runtime.
-    % perhaps compare with this? https://github.com/redcap97/fuse-mfs
 \end{itemize}
+
+\begin{lstlisting}[basicstyle=\tiny, caption={Excerpt from the prover output (\textnormal{gnatprove})}, label={code:prover output}]
+adafs-inode.adb:6:27: info: division check proved (CVC4: 1 VC in max 0.0 seconds and 1 step)
+adafs-inode.adb:6:27: info: range check proved (CVC4: 1 VC in max 0.0 seconds and 1 step)
+adafs-inode.adb:8:44: info: division check proved (CVC4: 1 VC in max 0.0 seconds and 1 step)
+adafs-inode.adb:13:12: info: overflow check proved (CVC4: 1 VC in max 0.0 seconds and 1 step)
+adafs-inode.adb:14:12: info: division check proved (CVC4: 1 VC in max 0.0 seconds and 1 step)
+adafs-inode.adb:14:12: info: range check proved (CVC4: 1 VC in max 0.0 seconds and 1 step)
+adafs-inode.adb:14:28: info: overflow check proved (CVC4: 1 VC in max 0.0 seconds and 1 step)
+adafs-inode.ads:40:60: info: range check proved (CVC4: 1 VC in max 0.0 seconds and 1 step)
+adafs-inode.ads:66:10: info: data dependencies proved
+adafs-inode.ads:67:10: info: flow dependencies proved
+adafs-inode.ads:69:18: info: postcondition proved (CVC4: 2 VC in max 0.0 seconds and 1 step)
+adafs-proc.adb:6:14: info: discriminant check proved (CVC4: 2 VC in max 0.0 seconds and 1 step)
+adafs-proc.adb:12:16: info: discriminant check proved (CVC4: 2 VC in max 0.0 seconds and 1 step)
+adafs-proc.ads:26:05: info: data dependencies proved
+adafs-filp.adb:18:30: info: loop invariant initialization proved (CVC4: 1 VC in max 0.0 seconds and 1 step)
+adafs-filp.adb:18:30: info: loop invariant preservation proved (CVC4: 1 VC in max 0.0 seconds and 1 step)
+adafs-filp.ads:28:13: info: postcondition proved (CVC4: 3 VC in max 0.0 seconds and 1 step)
+adafs-filp.ads:32:28: info: initialization of "free_fd" proved
+adafs-filp.ads:33:05: info: data dependencies proved
+adafs-filp.ads:34:05: info: flow dependencies proved
+adafs-filp.ads:35:13: info: postcondition proved (CVC4: 2 VC in max 0.0 seconds and 1 step)
+\end{lstlisting}
+
+% comparing with this: https://github.com/redcap97/fuse-mfs
+\begin{table}[h]
+  \begin{subtable}[t]{0.45\textwidth}
+    \centering
+    \begin{tabular}{l | l | l}
+      Category & C & Ada \\
+      \hline \hline
+      Real & 46 & 100 \\
+      User & 26 & 35 \\
+      Sys & 11 & 4
+    \end{tabular}
+    \caption{Time to create 30 files (in milliseconds)}
+    \label{tab:create 30}
+  \end{subtable}
+  \hfill
+  \begin{subtable}[t]{0.45\textwidth}
+    \centering
+    \begin{tabular}{l | l | l}
+      Category & C & Ada \\
+      \hline \hline
+      Real & 36 & 52 \\
+      User & 23 & 25 \\
+      Sys & 10 & 9
+    \end{tabular}
+    \caption{Time to delete 30 files (in milliseconds)}
+    \label{tab:delete 30}
+  \end{subtable}
+
+  \bigskip
+
+  \begin{subtable}[t]{0.45\textwidth}
+    \centering
+    \begin{tabular}{l | l | l}
+      Category & C & Ada \\
+      \hline \hline
+      Real & 3 & 5 \\
+      User & 2 & 2 \\
+      Sys & 0 & 0
+    \end{tabular}
+    \caption{Time to create and delete a file (in milliseconds)}
+    \label{tab:create delete}
+  \end{subtable}
+  \hfill
+  \begin{subtable}[t]{0.45\textwidth}
+    \centering
+    \begin{tabular}{l | l | l}
+      Category & C & Ada \\
+      \hline \hline
+      Real & 3 & 5 \\
+      User & 2 & 0 \\
+      Sys & 0 & 1
+    \end{tabular}
+    \caption{Time to write and read data (in milliseconds)}
+    \label{tab:write read}
+  \end{subtable}
+
+  \caption{Comparing filesystem operation performance in C and Ada}
+  \label{tab:fs times}
+\end{table}
