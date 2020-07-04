@@ -1,9 +1,32 @@
-\section{Results \& analysis}
-\begin{itemize}
-  \item Include the formal verification report, what's verified in relation to CWE numbers.
-  \item Add some performance analysis. Maybe timing? Try to do some common filesystem tasks \& see how it performs?
-  \item An idea is to try to test the speed of operations, the key is to show what difference the formal verification makes in terms of runtime.
-\end{itemize}
+\section{Results \& evaluation}
+As stated earlier, the filesystem was split into two parts: a filesystem logic part (the \textit{adafs} package), and an I/O part (the \textit{disk} package).
+Because the logic part is easier to verify, it was the primary focus of formal verification for this project.
+Subprograms were given functional and data contracts, and type definitions according to their expected functionality.
+Although this does not formally verify the functionality of the entire filesystem, it is a good starting point.
+\autoref{code:prover summary} shows a summary of the conducted checks, and \autoref{code:prover output} shows some of the locations of various checks.
+
+\begin{lstlisting}[basicstyle=\tiny, caption={Prover summary (\textnormal{gnatprove})}, label={code:prover summary}]
+Summary of SPARK analysis
+=========================
+
+---------------------------------------------------------------------------------------------------------
+SPARK Analysis results        Total        Flow   Interval   CodePeer      Provers   Justified   Unproved
+---------------------------------------------------------------------------------------------------------
+Data Dependencies                 5           5          .          .            .           .          .
+Flow Dependencies                 4           4          .          .            .           .          .
+Initialization                    2           2          .          .            .           .          .
+Non-Aliasing                      .           .          .          .            .           .          .
+Run-time Checks                  19           .          .          .    19 (CVC4)           .          .
+Assertions                        2           .          .          .     2 (CVC4)           .          .
+Functional Contracts              6           .          .          .     6 (CVC4)           .          .
+LSP Verification                  .           .          .          .            .           .          .
+---------------------------------------------------------------------------------------------------------
+Total                            38    11 (29%)          .          .     27 (71%)           .          .
+
+max steps used for successful proof: 1
+
+Analyzed 18 units
+\end{lstlisting}
 
 \begin{lstlisting}[basicstyle=\tiny, caption={Excerpt from the prover output (\textnormal{gnatprove})}, label={code:prover output}]
 adafs-inode.adb:6:27: info: division check proved (CVC4: 1 VC in max 0.0 seconds and 1 step)
@@ -29,6 +52,54 @@ adafs-filp.ads:34:05: info: flow dependencies proved
 adafs-filp.ads:35:13: info: postcondition proved (CVC4: 2 VC in max 0.0 seconds and 1 step)
 \end{lstlisting}
 
+The checks done by the prover can each be related directly to a Common Weakness Enumeration (CWE) number; these are shown in \autoref{tab:checks and cwe numbers} \cite{sparkUG}.
+
+\begin{table}[h]
+  \centering
+  \vspace{1em}
+  \renewcommand{\arraystretch}{1.5}
+  \begin{tabular}{| l | l |}
+    \hline
+    \textbf{Message} & \textbf{CWE number} \\ \hline
+    divide by zero & 369 \\ \hline
+    index check & 120 \\ \hline
+    overflow check & 190 \\ \hline
+    fp\_overflow check & 739 \\ \hline
+    range check & 682 \\ \hline
+    predicate check & 682 \\ \hline
+    predicate check on default value & 682 \\ \hline
+    null pointer dereference & 476 \\ \hline
+    memory leak & 401 \\ \hline
+    memory leak at end of scope & 401 \\ \hline
+    discriminant check & 136 \\ \hline
+    tag check & 136 \\ \hline
+    use of an uninitialized variable & 457 \\ \hline
+    precondition & 628 \\ \hline
+    postcondition & 682 \\ \hline
+  \end{tabular}
+  \renewcommand{\arraystretch}{1}
+  \vspace{1em}
+  \caption{SPARK checks with their respective CWE numbers}
+  \label{tab:checks and cwe numbers}
+\end{table}
+
+Due to Ada's type system, many of the checks do not take much effort to verify; in fact, all of the conducted checks were verified in one step.
+The assurances provided by the prover are powerful, as they mean that e.g. overflow errors and range errors can \textit{never} happen at those locations.
+In standard Ada, instructions are emmitted to check that e.g. array accesses are within the bounds of the array.
+However, with SPARK, such verifications can be conducted ahead of time.
+This means that the runtime checks done by Ada can be safely disabled, eliminating a number of machine instructions and thus improving the performance of the system.
+
+We compare the performance of AdaFS with a C implementation of a FUSE-based MINIX 3 filesystem\footnote{\url{https://github.com/redcap97/fuse-mfs}}.
+As AdaFS is not a complete filesystem, but only supports a small set of operations, it was not possible to use a standardised utility to test it.
+Therefore, we created a Bash script that uses the \textit{time} built-in command to measure the time a command takes to execute, and used the commands \textit{touch}, \textit{echo}, and \textit{rm} to work with files on the filesystem.
+\autoref{tab:fs times} shows the comparisons of some common filesystem operations, such as creating, writing, reading, and deleting files.
+The \textit{time} command outputs three different time values: Real, User, and Sys.
+Real is the ``wall clock'' time, User is the amount of time that the CPU spent on the program in user mode, and Sys is the amount of time that the CPU spent in kernel mode during the execution of the program.
+We are particularly interested in the User and Sys values, as the Real value may be affected by other programs running at the same time.
+The results show that although overall, the Ada implementation is technically slower, there is no significant performance difference between the C and Ada programs
+In particular, formal verification does not introduce any noticeable latency.
+This is also because the checks can be verified at compile time by the prover, which means that they do not need to be conducted at runtime.
+
 % comparing with this: https://github.com/redcap97/fuse-mfs
 \begin{table}[h]
   \begin{subtable}[t]{0.45\textwidth}
@@ -36,9 +107,9 @@ adafs-filp.ads:35:13: info: postcondition proved (CVC4: 2 VC in max 0.0 seconds 
     \begin{tabular}{l | l | l}
       Category & C & Ada \\
       \hline \hline
-      Real & 46 & 100 \\
-      User & 26 & 35 \\
-      Sys & 11 & 4
+      Real & 47 & 103 \\
+      User & 26 & 32 \\
+      Sys & 13 & 9
     \end{tabular}
     \caption{Time to create 30 files (in milliseconds)}
     \label{tab:create 30}
@@ -49,9 +120,9 @@ adafs-filp.ads:35:13: info: postcondition proved (CVC4: 2 VC in max 0.0 seconds 
     \begin{tabular}{l | l | l}
       Category & C & Ada \\
       \hline \hline
-      Real & 36 & 52 \\
-      User & 23 & 25 \\
-      Sys & 10 & 9
+      Real & 38 & 51 \\
+      User & 22 & 23 \\
+      Sys & 12 & 10
     \end{tabular}
     \caption{Time to delete 30 files (in milliseconds)}
     \label{tab:delete 30}
@@ -64,7 +135,7 @@ adafs-filp.ads:35:13: info: postcondition proved (CVC4: 2 VC in max 0.0 seconds 
     \begin{tabular}{l | l | l}
       Category & C & Ada \\
       \hline \hline
-      Real & 3 & 5 \\
+      Real & 3 & 6 \\
       User & 2 & 2 \\
       Sys & 0 & 0
     \end{tabular}
@@ -77,14 +148,14 @@ adafs-filp.ads:35:13: info: postcondition proved (CVC4: 2 VC in max 0.0 seconds 
     \begin{tabular}{l | l | l}
       Category & C & Ada \\
       \hline \hline
-      Real & 3 & 5 \\
-      User & 2 & 0 \\
+      Real & 2 & 5 \\
+      User & 2 & 1 \\
       Sys & 0 & 1
     \end{tabular}
     \caption{Time to write and read data (in milliseconds)}
     \label{tab:write read}
   \end{subtable}
 
-  \caption{Comparing filesystem operation performance in C and Ada}
+  \caption{Comparing filesystem operation performance in C and Ada. (Real = wall clock time, User = user mode time, Sys = kernel mode time)}
   \label{tab:fs times}
 \end{table}
