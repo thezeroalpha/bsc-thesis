@@ -1,8 +1,17 @@
 \section{Introduction}
-The introduction should cover
+As K. J. Parker said, ``the fastest, cheapest and easiest way to build something is properly the first time'' \cite{parker2007}.
+Software bugs can cost companies customers, reputation, and up to millions of dollars.
+If these bugs are in the filesystem, they can destroy potentially irreplaceable and priceless data.
+Unfortunately, given that large filesystem projects contain millions of lines of code, bugs are inevitable.
+In 2017, a bug in the NT File System used by Windows was found, which allowed anyone to crash Windows 7 or 8.1 \cite{bright2017}.
+Just this year, a bug in the Apple File System could prevent users from making a bootable clone of their disk \cite{bombich2020}.
+There are currently 112 bugs reported in the Bugzilla database for the Ext4 filesystem, and 611 bugs reported for the Btrfs filesystem \cite{bugzilla2020}.
 
-\begin{itemize}
-  \item why reliability is important
-  \item specifically in filesystems - why do you need a reliable filesystem?
-  \item what's done in this paper (high-level summary)
-\end{itemize}
+It is safe to say that we need a way to build more reliable software, without spending time and money fixing issues that could have been prevented from the start.
+C is in widespread use in the development of operating systems and their components, including the Ext4 filesystem.
+However, C is an inherently unsafe language, and its permissiveness means that errors are relatively easy to make.
+Attacks exploiting these errors can be devastating, such as the 2001 CodeRed worm that infiltrated enterprise networks \cite{trendmicro2002}.
+
+This paper explores alternative approaches to writing reliable software, specifically in the context of filesystems.
+A small filesystem based on that of MINIX 2 is developed, in Ada and its SPARK subset.
+Formal verification of some of its parts is conducted, and its effectiveness is analyzed and evaluated.

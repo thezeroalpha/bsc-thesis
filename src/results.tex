@@ -85,7 +85,7 @@ The checks done by the prover can each be related directly to a Common Weakness 
 
 Due to Ada's type system, many of the checks do not take much effort to verify; in fact, all of the conducted checks were verified in one step.
 The assurances provided by the prover are powerful, as they mean that e.g. overflow errors and range errors can \textit{never} happen at those locations.
-In standard Ada, instructions are emmitted to check that e.g. array accesses are within the bounds of the array.
+In standard Ada, instructions are emitted to check that e.g. array accesses are within the bounds of the array.
 However, with SPARK, such verifications can be conducted ahead of time.
 This means that the runtime checks done by Ada can be safely disabled, eliminating a number of machine instructions and thus improving the performance of the system.
 

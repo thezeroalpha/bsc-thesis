@@ -29,10 +29,10 @@
 \usepackage[style=ieee]{biblatex}
 \addbibresource{references.bib}
 
-\def\theauthor{Alexander Balgavy (2619644)}
-\def\thetitle{Sample Title}
+\def\theauthor{Alexander Balgav\'{y} (2619644)}
+\def\thetitle{AdaFS: an exploration of the use of formal methods for more reliable filesystems}
 \def\thedate{\today}
-\def\theinstitution{Vrije Universiteit Amsterdam}
+\def\theinstitution{Vrije Universiteit Amsterdam, \\ Systems and Network Security Group (VUSec)}
 \def\thesubject{Bachelor Thesis}
 
 \newcommand{\result}[1]{\input{numbers/#1}\unskip}
@@ -40,7 +40,12 @@
   \input{titlepage}
 
   \begin{abstract}
-    Abstract goes here.
+    Unreliable filesystems have many dangerous implications, worst of all the loss of data.
+    A well-designed filesystem is able to deal with errors by isolating them, repairing broken metadata, and mitigating damage.
+    But could we instead prevent errors from occurring in the first place?
+    In this paper, we take a look at current research done in the area of formal verification of filesystems.
+    We develop a small filesystem in Ada, a language used for high-reliability software in a range of applications.
+    We then evaluate it, finding that the language and its SPARK subset offer many powerful features that do not negatively impact the filesystem's performance.
   \end{abstract}
 
   \input{introduction}

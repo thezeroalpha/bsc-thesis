@@ -281,7 +281,9 @@ int main(int argc, char **argv) {
 \paragraph{Formal verification}
 Unfortunately, much of the code in its current form is not amenable to formal verification.
 These are namely the parts involving file input and output, and functions that work with C types (i.e. the FUSE driver).
-However, large parts of filesystem logic \textit{are} formally verifiable.
+To mitigate this, we attempted to make use of an existing project containing FUSE bindings for Ada\footnote{\url{https://github.com/medsec/ada-fuse}}, but as the project has not been maintained since 2016, we were unable to compile it.
+
+Nevertheless, large parts of filesystem logic are formally verifiable.
 Therefore, the code base was split into two distinct packages: the \textit{adafs} package, which contains filesystem logic that is strictly in the SPARK language, and the \textit{disk} package, which contains unverifiable elements such as disk I/O.
 The \textit{adafs} package does not include any specifics about the type of disk being used, as the \textit{disk} interface hides implementation details.
 Thus, when needed, and when an alternative is found, the \textit{disk} package can simply be replaced with a verifiable implementation that exposes an identical interface.
