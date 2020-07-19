@@ -242,7 +242,6 @@ int main(int argc, const char *argv[]) {
 \end{lstlisting}
 
 \paragraph{FUSE \& the FUSE driver}
-% FIXME: some of this should be in background info
 FUSE is a software interface that allows running filesystem code in userspace, with FUSE bridging the gap between the filesystem and the kernel.
 This simplifies the development of filesystems, because access to the kernel and modification of kernel code is not necessary.
 FUSE allows a filesystem to be developed iteratively; i.e., first it can be implemented and tested with FUSE, and later connected to a kernel if needed.
