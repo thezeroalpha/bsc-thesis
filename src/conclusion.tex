@@ -1,7 +1,6 @@
 \section{Conclusion}
 This paper has aimed to explore ways of writing reliable software, in particular reliable filesystems.
-``A computer program does what you tell it to do, not what you want it to do'' \cite{bloch1997}.
-We have explored ways to allow the programmer to specify what they want a filesystem to do, so that it performs accordingly with minimal or no maintenance effort.
+``A computer program does what you tell it to do, not what you want it to do'' \cite{bloch1997}, thus we have investigated methods to allow the programmer to specify what they want a filesystem to do, so that it performs accordingly with minimal or no maintenance effort.
 We highlighted Ada and its SPARK subset, a programming language that has seen great success in industries requiring high-reliability software such as aviation and space exploration, but which has not yet, to the best of our knowledge, been used for the development of a filesystem.
 As a proof-of-concept, we developed AdaFS, a small filesystem with components that are formally verified to perform according to their specification.
 In our evaluation, we found that formal verification, as well as the switch from the traditional choice of C to Ada, does not significantly impact performance.
@@ -14,6 +13,7 @@ These features not only provide developers with compile-time guidance, but also 
 Given that Ada was designed specifically for cases where reliability is the primary concern, it only seems natural that it would excel in those cases.
 
 Future work still needs to be done in this area to produce a filesystem that is suitable for regular use.
+Many crucial optimisations and caching mechanisms are missing, and would need to be implemented.
 The I/O part of the filesystem would need to be formally verified, perhaps using a variant of the Crash Hoare logic developed for other projects discussed in \autoref{sec:related work} to include system crashes in the specification.
-Furthermore, the filesystem could be integrated with e.g. a formally verified operating system kernel \cite{king2019}
+Furthermore, the filesystem could be integrated with e.g. a formally verified operating system kernel \cite{king2019}, instead of running in userspace.
 This would provide a solid foundation for reliable system development.

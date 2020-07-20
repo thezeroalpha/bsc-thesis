@@ -1,9 +1,10 @@
-\begin{tabular}{lrrrrrrrrrr}
+\begin{tabular}{lrrrrrrrrrrrrrrrrrrrr}
 \toprule
-op &     create &  read 1 &  read 1024 &  read 10240 &  read 102400 &  remove &  write 1 &  write 1024 &  write 10240 &  write 102400 \\
-fs       &            &         &            &             &              &         &          &             &              &               \\
+{} & \multicolumn{10}{l}{cycles} & \multicolumn{10}{l}{stdev} \\
+op &     create & read 1 & read 1024 & read 10240 & read 102400 &  remove & write 1 & write 1024 & write 10240 & write 102400 &    create & read 1 & read 1024 & read 10240 & read 102400 &  remove & write 1 & write 1024 & write 10240 & write 102400 \\
+fs       &            &        &           &            &             &         &         &            &             &              &           &        &           &            &             &         &         &            &             &              \\
 \midrule
-adafs    &  528727341 &    6710 &       2178 &        2183 &         2148 &  550232 &     2238 &        2081 &         2084 &          2186 \\
-fuse-mfs &    3622328 &    6466 &       2149 &        2146 &         2153 &  525831 &     2153 &        2060 &         2084 &          2124 \\
+adafs    &  548615020 &   5852 &      2165 &       2172 &        2129 &  516977 &    2095 &       1953 &        1917 &         2014 &  16668215 &    733 &       154 &       3813 &         166 &  146179 &     226 &        190 &         372 &          326 \\
+fuse-mfs &    1329948 &   5144 &      1713 &       1698 &        1703 &  208077 &    1898 &       1621 &        1744 &         1779 &   1709262 &   3262 &       525 &        537 &         516 &  267264 &     492 &        403 &         358 &          348 \\
 \bottomrule
 \end{tabular}

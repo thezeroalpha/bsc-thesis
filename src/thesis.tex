@@ -32,17 +32,17 @@
   \def\svgwidth{\columnwidth}
   \resizebox{0.85\textwidth}{!}{\import{./images/}{#1.pdf_tex}}
 }
+\newcommand{\result}[1]{\input{../evaluation/stats/#1}\unskip}
 
 \usepackage[style=ieee]{biblatex}
 \addbibresource{references.bib}
 
 \def\theauthor{Alexander Balgav\'{y} (2619644)}
-\def\thetitle{AdaFS: an exploration of the use of formal methods for more reliable filesystems}
+\def\thetitle{AdaFS: An Exploration of the Use of Formal Methods For More Reliable Filesystems}
 \def\thedate{\today}
 \def\theinstitution{Vrije Universiteit Amsterdam, \\ Systems and Network Security Group (VUSec)}
 \def\thesubject{Bachelor Thesis}
 
-\newcommand{\result}[1]{\input{numbers/#1}\unskip}
 \begin{document}
   \input{titlepage}
 
@@ -54,7 +54,7 @@
     We develop a small filesystem in Ada, a language used for high-reliability software in a range of applications.
     We then evaluate it, finding that the language and its SPARK subset offer many powerful features that do not negatively impact the filesystem's performance.
   \end{abstract}
-
+  \input{meta}
   \input{introduction}
   \input{background}
   \input{design-implementation}

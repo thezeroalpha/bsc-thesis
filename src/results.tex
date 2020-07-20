@@ -1,6 +1,10 @@
 \section{Results \& evaluation}
+\subsection{Correctness}
 As stated earlier, the filesystem was split into two parts: a filesystem logic part (the \textit{adafs} package), and an I/O part (the \textit{disk} package).
 Because the logic part is easier to verify, it was the primary focus of formal verification for this project.
+Currently, approximately 25\% of the filesystem is verified, and most of the unverified code is in the \textit{disk} package.
+Since the FUSE driver is written in C, and in Ada with C types, it is also not verified.
+
 Subprograms were given functional and data contracts, and type definitions according to their expected functionality.
 Although this does not formally verify the functionality of the entire filesystem, it is a good starting point.
 \autoref{code:prover summary} shows a summary of the conducted checks, and \autoref{code:prover output} shows some of the locations of various checks.
@@ -9,23 +13,25 @@ Although this does not formally verify the functionality of the entire filesyste
 Summary of SPARK analysis
 =========================
 
----------------------------------------------------------------------------------------------------------
-SPARK Analysis results        Total        Flow   Interval   CodePeer      Provers   Justified   Unproved
----------------------------------------------------------------------------------------------------------
-Data Dependencies                 5           5          .          .            .           .          .
-Flow Dependencies                 4           4          .          .            .           .          .
-Initialization                    2           2          .          .            .           .          .
-Non-Aliasing                      .           .          .          .            .           .          .
-Run-time Checks                  19           .          .          .    19 (CVC4)           .          .
-Assertions                        2           .          .          .     2 (CVC4)           .          .
-Functional Contracts              6           .          .          .     6 (CVC4)           .          .
-LSP Verification                  .           .          .          .            .           .          .
----------------------------------------------------------------------------------------------------------
-Total                            38    11 (29%)          .          .     27 (71%)           .          .
+----------------------------------------------------------------------------------------------------------
+SPARK Analysis results   Total        Flow   CodePeer                       Provers   Justified   Unproved
+----------------------------------------------------------------------------------------------------------
+Data Dependencies            5           5          .                             .           .          .
+Flow Dependencies            4           4          .                             .           .          .
+Initialization               1           1          .                             .           .          .
+Non-Aliasing                 .           .          .                             .           .          .
+Run-time Checks             17           .          .    17 (CVC4 89%, Trivial 11%)           .          .
+Assertions                   2           .          .                      2 (CVC4)           .          .
+Functional Contracts         6           .          .      6 (CVC4 92%, Trivial 8%)           .          .
+LSP Verification             .           .          .                             .           .          .
+Termination                  .           .          .                             .           .          .
+Concurrency                  .           .          .                             .           .          .
+----------------------------------------------------------------------------------------------------------
+Total                       35    10 (29%)          .                      25 (71%)           .          .
 
 max steps used for successful proof: 1
 
-Analyzed 18 units
+Analyzed 12 units
 \end{lstlisting}
 
 \begin{lstlisting}[basicstyle=\tiny, caption={Excerpt from the prover output (\textnormal{gnatprove})}, label={code:prover output}]
@@ -88,17 +94,18 @@ The assurances provided by the prover are powerful, as they mean that e.g. overf
 In standard Ada, instructions are emitted to check that e.g. array accesses are within the bounds of the array.
 However, with SPARK, such verifications can be conducted ahead of time.
 This means that the runtime checks done by Ada can be safely disabled, eliminating a number of machine instructions and thus improving the performance of the system.
-% TODO: mention something like how much of the codebase is covered by SPARK
 
-We compare the performance of AdaFS with a C implementation of a FUSE-based MINIX 3 filesystem\footnote{\url{https://github.com/redcap97/fuse-mfs}}.
+\subsection{Performance}
+We compare the performance of AdaFS with a C implementation of a FUSE-based MINIX 3 filesystem, fuse-mfs\footnote{\url{https://github.com/redcap97/fuse-mfs}}.
 As AdaFS is not a complete filesystem, but only supports a small set of operations, it was not possible to use a standardised utility to test it.
 Therefore, we created a microbenchmark in C that executes the relevant system calls and counts the number of CPU clock cycles necessary for each operation.
 We compared some common filesystem operations, such as creating, writing, reading, and deleting files.
 We used a virtual machine in VirtualBox 6.1.10 on a macOS host, running Debian 4.19.118, with FUSE version 3.4.1.
+The machine has 4 CPUs, 2 GB of RAM, and a Intel Core i7-3615QM processor at 2.3 GHz.
 The disk images for the filesystem were stored on an SSD.
 
 To calculate the number of CPU clock cycles an operation takes, we use a deterministic version of the ReaD Time Stamp Counter (RDTSC) instruction, RDTSCP, which is added as inline assembly in the C microbenchmark code.
-Example code for this is shown in \autoref{code:rdtsc}.
+The code to calculate elapsed clock cycles is shown in \autoref{code:rdtsc}.
 
 \begin{lstlisting}[caption={Calculating clock cycles}, label={code:rdtsc}, language=C]
 static __inline__ int64_t rdtsc_s(void) {
@@ -147,22 +154,26 @@ void run_test(void) {
   ...
 }
 \end{lstlisting}
+
 We also assign interrupts to CPU 0 to avoid interference.
 This ensures that no other processes are scheduled on the same CPU as our tests, i.e. that our results are as noiseless as possible.
 We run FUSE in single-thread mode for both implementations of the filesystem.
 
 We run the benchmark 30 times for each filesystem implementation; \autoref{tab:fs comparison} presents the median values for each implementation and operation.
-% TODO: explain the plots and the tables
+It is apparent that AdaFS is significantly slower than fuse-mfs.
+The largest difference is apparent in the create operation, which is approximately 412.5 times slower.
+The remove operation is around 2.5 times slower than that of fuse-mfs.
+For other operations, the difference is not as drastic, though the Ada implementation is still around 10-20\% slower on average.
 
-% comparing with this: https://github.com/redcap97/fuse-mfs
 \begin{table}[h]
   \begin{subtable}[t]{\textwidth}
     \centering
-    \begin{tabular}{l | r | r}
-      Implementation & Create & Remove \\
+    \begin{tabular}{l r | r | r | r}
+                      & \multicolumn{2}{c}{\underline{Create}}                                           & \multicolumn{2}{c}{\underline{Remove}} \\
+       Implementation & Cycles                                 & Std. dev.                               & Cycles                   & Std. dev.                   \\
       \hline \hline
-      AdaFS & 528727341 & 550232 \\ % TODO: check this! this seems like waaaay too much of a difference...
-      fuse-mfs & 3622328 & 525831
+      AdaFS           & \result{adafs-create}                  & \result{adafs-create-stdev}             & \result{adafs-remove}    & \result{adafs-remove-stdev} \\
+      fuse-mfs        & \result{fuse-mfs-create}               & \result{fuse-mfs-create-stdev}          & \result{fuse-mfs-remove} & \result{fuse-mfs-remove-stdev}
     \end{tabular}
     \caption{CPU cycles to create and remove files}
     \label{tab:create remove files}
@@ -172,11 +183,13 @@ We run the benchmark 30 times for each filesystem implementation; \autoref{tab:f
 
   \begin{subtable}[t]{\textwidth}
     \centering
-    \begin{tabular}{l | r | r | r | r}
-      Implementation & Read 1 B & Read 1 KB & Read 10 KB & Read 100 KB \\
+    \small
+    \begin{tabular}{l r | r | r | r | r | r | r | r}
+                     & \multicolumn{2}{c}{\underline{Read 1 B}} & \multicolumn{2}{c}{\underline{Read 1 KB}} & \multicolumn{2}{c}{\underline{Read 10 KB}} & \multicolumn{2}{c}{\underline{Read 100 KB}} \\
+      Implementation & Cycles                                  & Std. dev.                                & Cycles                                    & Std. dev.                                   & Cycles                       & Std. dev.                          & Cycles                        & Std. dev.                        \\
       \hline \hline
-      AdaFS & 6710 & 2178 & 2183 & 2148 \\
-      fuse-mfs & 6466 & 2149 & 2146 & 2153
+      AdaFS          & \result{adafs-read-1}                   & \result{adafs-read-1-stdev}              & \result{adafs-read-1024}                  & \result{adafs-read-1024-stdev}              & \result{adafs-read-10240}    & \result{adafs-read-10240-stdev}    & \result{adafs-read-102400}    & \result{adafs-read-102400-stdev} \\
+      fuse-mfs       & \result{fuse-mfs-read-1}                & \result{fuse-mfs-read-1-stdev}           & \result{fuse-mfs-read-1024}               & \result{fuse-mfs-read-1024-stdev}           & \result{fuse-mfs-read-10240} & \result{fuse-mfs-read-10240-stdev} & \result{fuse-mfs-read-102400} & \result{fuse-mfs-read-102400-stdev}
     \end{tabular}
     \caption{CPU cycles to read files of varying sizes}
     \label{tab:read files}
@@ -186,18 +199,27 @@ We run the benchmark 30 times for each filesystem implementation; \autoref{tab:f
 
   \begin{subtable}[t]{\textwidth}
     \centering
-    \begin{tabular}{l | r | r | r | r}
-      Implementation & Write 1 B & Write 1 KB & Write 10 KB & Write 100 KB \\
+    \small
+    \begin{tabular}{l r | r | r | r | r | r | r | r}
+                     & \multicolumn{2}{c}{\underline{Write 1 B}} & \multicolumn{2}{c}{\underline{Write 1 KB}} & \multicolumn{2}{c}{\underline{Write 10 KB}} & \multicolumn{2}{c}{\underline{Write 100 KB}} \\
+      Implementation & Cycles                                  & Std. dev.                                & Cycles                                    & Std. dev.                                   & Cycles                       & Std. dev.                          & Cycles                        & Std. dev.                        \\
       \hline \hline
-      AdaFS & 2238 & 2081 & 2084 & 2186 \\
-      fuse-mfs & 2153 & 2060 & 2084 & 2124 \\
+      AdaFS          & \result{adafs-write-1}                   & \result{adafs-write-1-stdev}              & \result{adafs-write-1024}                  & \result{adafs-write-1024-stdev}              & \result{adafs-write-10240}    & \result{adafs-write-10240-stdev}    & \result{adafs-write-102400}    & \result{adafs-write-102400-stdev} \\
+      fuse-mfs       & \result{fuse-mfs-write-1}                & \result{fuse-mfs-write-1-stdev}           & \result{fuse-mfs-write-1024}               & \result{fuse-mfs-write-1024-stdev}           & \result{fuse-mfs-write-10240} & \result{fuse-mfs-write-10240-stdev} & \result{fuse-mfs-write-102400} & \result{fuse-mfs-write-102400-stdev}
     \end{tabular}
     \caption{CPU cycles to write files of varying sizes}
     \label{tab:write files}
   \end{subtable}
-  \caption{Comparing filesystem operation performance in C (fuse-mfs) and Ada (AdaFS).}
+  \caption{Comparing filesystem operation performance in C (fuse-mfs) and Ada (AdaFS), showing the median and standard deviation across 30 observations.}
   \label{tab:fs comparison}
 \end{table}
+
+\autoref{fig:read comparison} and \autoref{fig:write comparison} show how the read and write operations scale with buffer size, respectively.
+Excluding the fact that AdaFS is much slower overall, the implementations scale in a relatively similar manner.
+The scaling of the read operation, shown in \autoref{fig:read comparison}, is essentially identical.
+From \autoref{fig:write comparison}, we can discern some differences in the scaling of writes.
+For example, writing a 10 KB file is faster than writing a 1 KB file in AdaFS, but the opposite is true for fuse-mfs.
+Moreover, the number of cycles increases more rapidly with the file size in AdaFS tha it does in fuse-mfs.
 
 \begin{figure}[h]
   \centering
@@ -212,4 +234,33 @@ We run the benchmark 30 times for each filesystem implementation; \autoref{tab:f
   \caption{Comparing file write performance in C (fuse-mfs) and Ada (AdaFS)}
   \label{fig:write comparison}
 \end{figure}
+
+These differences in performance are mostly small enough that they are not generally noticeable in everyday life.
+However, a create operation that takes 0.24 seconds (548615020 cycles at 2.3 GHz) may have a visible impact, and the other operations may also cause issues in applications where speed is critical.
+Thus, it is important to find out why this slowdown happens, or eliminate factors that do not cause decreased performance.
+It may not necessarily be due to the extra code needed for formal verification; AdaFS does not employ any optimisations or caching that MINIX 2 uses, and MINIX 3 is even more optimised for speed than MINIX 2.
+
+To determine if the verification code or implementation language may play a role in the slowdown, we implemented two versions of a factorial function for numbers up to 5, in C and Ada.
+In Ada, we use the same settings and pragmas as AdaFS.
+The Ada version of the function includes a full formal specification, with data and functional contracts, and with type definitions.
+The Ada function is exported and called from C.
+The C version follows the Ada version as closely as the language allows.
+
+We run both implementations 500 times, counting the clock cycles.
+The results (median and standard deviation) are shown in \autoref{tab:factorial comparison}.
+From this, we can see that the Ada implementation only takes 8 more clock cycles than the C implementation.
+Therefore, the implementation language and formal verification code are likely not major contributors to the decreased performance we see in AdaFS.
+The performance degradation must thus be caused by other differences in the implementations.
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{l | r | r}
+    Implementation & Cycles & Std. dev. \\
+    \hline \hline
+    Ada            & 132    & 55.21     \\
+    C              & 124    & 38.33
+  \end{tabular}
+  \caption{Factorial function comparison in Ada and C.}
+  \label{tab:factorial comparison}
+\end{table}
 \clearpage
