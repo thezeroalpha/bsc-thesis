@@ -1,0 +1,4 @@
+= todo paper =
+- [ ] add info about io impl choice (why stream io?)
+- [ ] add connecting sentence before related work: "having presented our design and implementation, we summarize.."
+- [ ] add supervisor/reader names
