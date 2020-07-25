@@ -77,7 +77,6 @@ One entry corresponds to one process, and contains the inode numbers for the roo
 Each open file descriptor corresponds to an entry in the filesystem's \textit{filp} table, which is shared among all processes and contains all the file position.
 The rationale for a shared file position table comes from MINIX, and is based on problems with the semantics of the \textit{fork} system call \cite{tanenbaum1997}.
 An entry in the filp table contains the number of file descriptors using that entry, the inode number, and the file position for the inode.
-% TODO: maybe add here an example of inode lookup for the read() call
 
 Due to time constraints, a number of simplifications were made compared to MINIX.
 In particular, only the features necessary for basic functionality of the system were implemented.
@@ -204,6 +203,20 @@ begin
   return result;
 end read_block;
 \end{lstlisting}
+
+\paragraph{Input \& output}
+In AdaFS, we use a disk image file to represent the filesystem's disk.
+Therefore, an appropriate way of reading and writing the file was needed.
+Ada offers several types of input and output (IO), in the form of packages.
+The simplest is \textit{Text\_IO}, which provides sequential file IO for human-readable text only.
+The package \textit{Sequential\_IO} provides sequential access for heterogeneous data (data of varying types).
+There are also two packages for random-access IO: \textit{Direct\_IO} and \textit{Stream\_IO}.
+\textit{Direct\_IO} is used for files with homogeneous data (data of a single, uniform type), and \textit{Stream\_IO} is for heterogeneous data.
+
+For this project, we required random-access IO, to allow the filesystem to read and write data at any position on the disk.
+We also preferred heterogeneous IO, to be able to easily read and write data of varying types, such as different types of blocks (a data block, directory block, inode block, etc.).
+Therefore, we opted for \textit{Stream\_IO}, as it best fulfilled our requirements.
+However, the other packages may offer advantages (performance or otherwise), and this choice could be worth investigating more in future work.
 
 \paragraph{Interfacing with other languages}
 Ada has a mechanism to allow interfacing with other programming languages, such as Fortran, COBOL, or C.

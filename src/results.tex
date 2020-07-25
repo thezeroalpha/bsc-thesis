@@ -214,31 +214,15 @@ For other operations, the difference is not as drastic, though the Ada implement
   \label{tab:fs comparison}
 \end{table}
 
-\autoref{fig:read comparison} and \autoref{fig:write comparison} show how the read and write operations scale with buffer size, respectively.
-Excluding the fact that AdaFS is much slower overall, the implementations scale in a relatively similar manner.
-The scaling of the read operation, shown in \autoref{fig:read comparison}, is essentially identical.
-From \autoref{fig:write comparison}, we can discern some differences in the scaling of writes.
-For example, writing a 10 KB file is faster than writing a 1 KB file in AdaFS, but the opposite is true for fuse-mfs.
-Moreover, the number of cycles increases more rapidly with the file size in AdaFS tha it does in fuse-mfs.
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[scale=0.7]{read.png}
-  \caption{Comparing file read performance in C (fuse-mfs) and Ada (AdaFS)}
-  \label{fig:read comparison}
-\end{figure}
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[scale=0.7]{write.png}
-  \caption{Comparing file write performance in C (fuse-mfs) and Ada (AdaFS)}
-  \label{fig:write comparison}
-\end{figure}
-
 These differences in performance are mostly small enough that they are not generally noticeable in everyday life.
 However, a create operation that takes 0.24 seconds (548615020 cycles at 2.3 GHz) may have a visible impact, and the other operations may also cause issues in applications where speed is critical.
 Thus, it is important to find out why this slowdown happens, or eliminate factors that do not cause decreased performance.
 It may not necessarily be due to the extra code needed for formal verification; AdaFS does not employ any optimisations or caching that MINIX 2 uses, and MINIX 3 is even more optimised for speed than MINIX 2.
+For example, part of the \textit{create} operation is the creation of a new inode.
+Among other things, MINIX keeps track of free inodes in a table in memory, which is flushed to disk at various points.
+This makes looking up a free inode much faster, improving the performance of the \textit{create} operation.
+Due to time constraints, AdaFS does not implement this table, and thus has to read it from the disk.
+This is also the case with other similar mechanisms.
 
 To determine if the verification code or implementation language may play a role in the slowdown, we implemented two versions of a factorial function for numbers up to 5, in C and Ada.
 In Ada, we use the same settings and pragmas as AdaFS.
