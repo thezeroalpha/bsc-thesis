@@ -247,4 +247,33 @@ The performance degradation must thus be caused by other differences in the impl
   \caption{Factorial function comparison in Ada and C.}
   \label{tab:factorial comparison}
 \end{table}
+
+Another potential source of performance degradation could be the choice of IO package.
+Ada offers two packages for random-access data IO: \textit{Stream\_IO} (heterogeneous data) and \textit{Direct\_IO} (homogeneous data).
+In this project, we opted for the former, but the latter may offer better performance.
+For example, because the implementation of \textit{Stream\_IO} might include some code to manipulate incoming or outgoing data into a suitable format.
+To test whether this is the case, we implemented a function that opens a file, reads a record from the file, modifies the record, writes the modified record to the file, and closes the file.
+We created two implementations, one with \textit{Direct\_IO}, and one with \textit{Stream\_IO}.
+Both implementations exported functions to C, and both were called from C; this helped eliminate any potential clock cycle differences at the boundary between C code and Ada code.
+We used the same setup as for the other tests (i.e. schedule the tests on an isolated CPU, and count clock cycles with RDTSC), and ran each implementation's function 500 times.
+The results (median and standard deviation) are shown in table \autoref{tab:io implementation comparison}.
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{l | r | r}
+    Implementation & Cycles & Std. dev. \\
+    \hline \hline
+    Stream IO & \result{stream-io} & \result{stream-io-stdev} \\
+    Direct IO & \result{direct-io} & \result{direct-io-stdev}
+  \end{tabular}
+  \caption{Random-access IO implementation comparison in Ada.}
+  \label{tab:io implementation comparison}
+\end{table}
+
+We can see that \textit{Stream IO} is actually faster than Direct IO, taking around 25\% fewer clock cycles for the same operations.
+One reason might be because Direct IO could have some checks in place to verify that the data is indeed homogeneous.
+The difference in clock cycles could also be the result of switching between reading and writing modes.
+\textit{Stream IO} has a dedicated function to set the mode of the file, which may be optimised in some way, while with Direct IO, the file has to be closed and reopened with the new mode.
+Therefore, for the purposes of AdaFS where switches between file modes are common, \textit{Stream IO} seems more performant.
+It could also be worthwhile to compare \textit{Stream IO} with one of the sequential IO packages, but as using only sequential reads and writes would require a different filesystem design or some levels of abstraction, it is not covered in this paper.
 \clearpage

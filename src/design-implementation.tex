@@ -80,7 +80,7 @@ An entry in the filp table contains the number of file descriptors using that en
 
 Due to time constraints, a number of simplifications were made compared to MINIX.
 In particular, only the features necessary for basic functionality of the system were implemented.
-The filesystem does not cache any information, and there is no in-memory inode table; all data is written directly to disk.
+The filesystem does not cache any information, and there is no in-memory inode table; all data are written directly to disk.
 Furthermore, the current implementation does not keep track of file mode, owner, group, or timestamps.
 This results in a limited filesystem, which nonetheless completes its function as a proof-of-concept.
 
@@ -216,7 +216,6 @@ There are also two packages for random-access IO: \textit{Direct\_IO} and \texti
 For this project, we required random-access IO, to allow the filesystem to read and write data at any position on the disk.
 We also preferred heterogeneous IO, to be able to easily read and write data of varying types, such as different types of blocks (a data block, directory block, inode block, etc.).
 Therefore, we opted for \textit{Stream\_IO}, as it best fulfilled our requirements.
-However, the other packages may offer advantages (performance or otherwise), and this choice could be worth investigating more in future work.
 
 \paragraph{Interfacing with other languages}
 Ada has a mechanism to allow interfacing with other programming languages, such as Fortran, COBOL, or C.
