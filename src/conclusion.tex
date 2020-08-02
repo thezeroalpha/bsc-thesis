@@ -3,7 +3,7 @@ This paper has aimed to explore ways of writing reliable software, in particular
 ``A computer program does what you tell it to do, not what you want it to do'' \cite{bloch1997}, thus we have investigated methods to allow the programmer to specify what they want a filesystem to do, so that it performs accordingly with minimal or no maintenance effort.
 We highlighted Ada and its SPARK subset, a programming language that has seen great success in industries requiring high-reliability software such as aviation and space exploration, but which has not yet, to the best of our knowledge, been used for the development of a filesystem.
 As a proof-of-concept, we developed AdaFS, a small filesystem with components that are formally verified to perform according to their specification.
-In our evaluation, we found that formal verification, as well as the switch from the traditional choice of C to Ada, does not significantly impact performance.
+Our evaluation resutls indicate that formal verification, as well as the switch from the traditional choice of C to Ada, probably does not have a major impact on performance.
 
 The aim of this paper is not to criticise or dismiss C, nor to suggest Ada as the sole alternative.
 It is rather to explore tools that have not seen much use yet in the domain of filesystems.

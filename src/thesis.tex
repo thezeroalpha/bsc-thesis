@@ -1,4 +1,4 @@
-\documentclass[12pt,notitlepage]{article}
+\documentclass[12pt,notitlepage,]{article}
 \usepackage[a4paper, top=0.7in, left=0.7in, right=0.7in, bottom=0.7in]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
@@ -37,6 +37,9 @@
 \usepackage[style=ieee]{biblatex}
 \addbibresource{references.bib}
 
+% To show overfull boxes:
+\setlength{\overfullrule}{5pt}
+
 \def\theauthor{Alexander Balgav\'{y} (2619644)}
 \def\thetitle{AdaFS: An Exploration of the Use of Formal Methods For More Reliable Filesystems}
 \def\thedate{\today}
@@ -57,7 +60,8 @@
   \input{meta}
   \input{introduction}
   \input{background}
-  \input{design-implementation}
+  \input{design}
+  \input{implementation}
   \input{results}
   \input{related}
   \input{conclusion}

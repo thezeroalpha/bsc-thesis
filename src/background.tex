@@ -1,5 +1,5 @@
-\section{Background information}
-\subsection{C as the implementation language}
+\section{Background Information}
+\subsection{C as the Implementation Language}
 The choice of an implementation language may affect the bugs or vulnerabilities that are present in the system.
 The de-facto standard implementation language for operating systems and their components has long been C.
 Many popular file systems are implemented in C, such as Ext4 \cite{ext4code}.
@@ -25,7 +25,7 @@ In summary, although C is the `traditional' systems programming language, code w
 Even a simple ``Hello World'' program exposes some of the most dangerous features of the language \cite{milewski}.
 Therefore, it would be beneficial to find a better method, a way to write more reliable systems with less burden resting on the programmer.
 
-\subsection{Possible alternatives to C}
+\subsection{Possible Alternatives to C}
 Given the issues with C code, what alternatives are there?
 It is possible to subset C and allow only statements or expressions considered suitable for reliable software, or perhaps instead of retroactively imposing restrictions on a language, it would be more beneficial to use a language designed with safety properties in mind.
 
@@ -88,7 +88,7 @@ It has been used in the Airbus 380 aircraft \cite{feldman2014}, and almost all o
 Ada has been used in space exploration: it was used in the Atlas V rocket (known for launching NASA's Mars Reconnaissance Orbiter\footnote{\url{https://www.nasa.gov/home/hqnews/2005/aug/HQ_05218_MRO_success.html}} and New Horizons\footnote{\url{http://pluto.jhuapl.edu/News-Center/Resources/Press-Kits/011607_JupiterPressKit.pdf}} missions), and aboard scientific space vehicles such as the International Space Station, NASA's CloudSat, and the European Space Agency's Huygens probe \cite{feldman2014}.
 It has also been used in railway transport, e.g. for the European Train Control System and the TGV (whose software was converted from C to Ada).
 
-\subsection{Formal verification}
+\subsection{Formal Verification}
 Chen et al. say that provably correct software has been a long-term goal of computer science \cite{chen2015}.
 Formal verification is the only way to guarantee this, but though its applications in the area of filesystems have recently increased, it is not yet at the same level of detail and assurance as in other domains \cite{amani2016}.
 Amani et al. argue that removing human intervention in the verification process is a key step \cite{amani2016}.
@@ -106,7 +106,7 @@ On the other hand, \textit{total correctness} requires that the program terminat
 Partial correctness is introduced because in some cases, proving total correctness is made easier by first proving partial correctness and then proving termination.
 Proof rules and calculi exist to prove partial and total correctness, and the aim is for these proofs to be carried out automatically by prover tools.
 
-\subsection{Filesystem in Userspace (FUSE)}
+\subsection{Filesystem In Userspace (FUSE)}
 FUSE, an acronym for Filesystem in Userspace, is a library that allows mounting filesystems in userspace.
 It consists of two parts: a kernel part, and a user-level daemon \cite{vangoor2017}.
 The kernel part is a Linux kernel module that registers a \textit{fuse} filesystem and a block device at \textit{/dev/fuse}.

@@ -1,4 +1,4 @@
-\section{Results \& evaluation}
+\section{Results \& Evaluation}
 \subsection{Correctness}
 As stated earlier, the filesystem was split into two parts: a filesystem logic part (the \textit{adafs} package), and an I/O part (the \textit{disk} package).
 Because the logic part is easier to verify, it was the primary focus of formal verification for this project.
@@ -9,7 +9,7 @@ Subprograms were given functional and data contracts, and type definitions accor
 Although this does not formally verify the functionality of the entire filesystem, it is a good starting point.
 \autoref{code:prover summary} shows a summary of the conducted checks, and \autoref{code:prover output} shows some of the locations of various checks.
 
-\begin{lstlisting}[basicstyle=\tiny, caption={Prover summary (\textnormal{gnatprove})}, label={code:prover summary}]
+\begin{lstlisting}[float=tb,basicstyle=\tiny, caption={Prover summary (\textnormal{gnatprove})}, label={code:prover summary}]
 Summary of SPARK analysis
 =========================
 
@@ -34,7 +34,7 @@ max steps used for successful proof: 1
 Analyzed 12 units
 \end{lstlisting}
 
-\begin{lstlisting}[basicstyle=\tiny, caption={Excerpt from the prover output (\textnormal{gnatprove})}, label={code:prover output}]
+\begin{lstlisting}[float=tb,basicstyle=\tiny, caption={Excerpt from the prover output (\textnormal{gnatprove})}, label={code:prover output}]
 adafs-inode.adb:6:27: info: division check proved (CVC4: 1 VC in max 0.0 seconds and 1 step)
 adafs-inode.adb:6:27: info: range check proved (CVC4: 1 VC in max 0.0 seconds and 1 step)
 adafs-inode.adb:8:44: info: division check proved (CVC4: 1 VC in max 0.0 seconds and 1 step)
@@ -60,7 +60,7 @@ adafs-filp.ads:35:13: info: postcondition proved (CVC4: 2 VC in max 0.0 seconds 
 
 The checks done by the prover can each be related directly to a Common Weakness Enumeration (CWE) number; these are shown in \autoref{tab:checks and cwe numbers} \cite{sparkUG}.
 
-\begin{table}[h]
+\begin{table}[tb]
   \centering
   \vspace{1em}
   \renewcommand{\arraystretch}{1.5}
@@ -96,18 +96,22 @@ However, with SPARK, such verifications can be conducted ahead of time.
 This means that the runtime checks done by Ada can be safely disabled, eliminating a number of machine instructions and thus improving the performance of the system.
 
 \subsection{Performance}
+We conduct several tests to compare the performance of AdaFS with its C counterpart.
+
+\subsubsection{Microbenchmark comparison of Ada and C filesystem implementations}
 We compare the performance of AdaFS with a C implementation of a FUSE-based MINIX 3 filesystem, fuse-mfs\footnote{\url{https://github.com/redcap97/fuse-mfs}}.
 As AdaFS is not a complete filesystem, but only supports a small set of operations, it was not possible to use a standardised utility to test it.
 Therefore, we created a microbenchmark in C that executes the relevant system calls and counts the number of CPU clock cycles necessary for each operation.
 We compared some common filesystem operations, such as creating, writing, reading, and deleting files.
 We used a virtual machine in VirtualBox 6.1.10 on a macOS host, running Debian 4.19.118, with FUSE version 3.4.1.
-The machine has 4 CPUs, 2 GB of RAM, and a Intel Core i7-3615QM processor at 2.3 GHz.
-The disk images for the filesystem were stored on an SSD.
+The host computer has an Intel Core i7-3615QM processor, with 4 physical cores and two threads per core, at 2.3 GHz.
+The virtual machine is assigned 4 of these 8 virtual processors.
+The disk images for the filesystem are stored on an SSD.
 
 To calculate the number of CPU clock cycles an operation takes, we use a deterministic version of the ReaD Time Stamp Counter (RDTSC) instruction, RDTSCP, which is added as inline assembly in the C microbenchmark code.
 The code to calculate elapsed clock cycles is shown in \autoref{code:rdtsc}.
 
-\begin{lstlisting}[caption={Calculating clock cycles}, label={code:rdtsc}, language=C]
+\begin{lstlisting}[float=tb,caption={Calculating clock cycles}, label={code:rdtsc}, language=C]
 static __inline__ int64_t rdtsc_s(void) {
   unsigned a, d;
   asm volatile("cpuid" ::: "%rax", "%rbx", "%rcx", "%rdx");
@@ -133,11 +137,11 @@ int main() {
 }
 \end{lstlisting}
 
-We choose RDTSCP instead of RDTSC because the CPU cannot reorder it relative to other instructions, as this reordering would cause noise in our results \cite{delorie2016}.
+We choose RDTSCP instead of RDTSC because the CPU cannot reorder it relative to other instructions, as such reordering would cause noise in our results \cite{delorie2016}.
 We set the \lstinline{isolcpus} kernel option at boot to isolate CPU 1, and then use the \lstinline{sched_affinity} function call to explicitly schedule each test on this CPU.
 \autoref{code:schedule test} shows the code for this.
 
-\begin{lstlisting}[caption={Schedule a test on CPU 1}, label={code:schedule test}, language=C]
+\begin{lstlisting}[float=tb,caption={Schedule a test on CPU 1}, label={code:schedule test}, language=C]
 #define _GNU_SOURCE
 #include <sched.h>
 void run_test(void) {
@@ -165,7 +169,7 @@ The largest difference is apparent in the create operation, which is approximate
 The remove operation is around 2.5 times slower than that of fuse-mfs.
 For other operations, the difference is not as drastic, though the Ada implementation is still around 10-20\% slower on average.
 
-\begin{table}[h]
+\begin{table}[tb]
   \begin{subtable}[t]{\textwidth}
     \centering
     \begin{tabular}{l r | r | r | r}
@@ -186,10 +190,10 @@ For other operations, the difference is not as drastic, though the Ada implement
     \small
     \begin{tabular}{l r | r | r | r | r | r | r | r}
                      & \multicolumn{2}{c}{\underline{Read 1 B}} & \multicolumn{2}{c}{\underline{Read 1 KB}} & \multicolumn{2}{c}{\underline{Read 10 KB}} & \multicolumn{2}{c}{\underline{Read 100 KB}} \\
-      Implementation & Cycles                                  & Std. dev.                                & Cycles                                    & Std. dev.                                   & Cycles                       & Std. dev.                          & Cycles                        & Std. dev.                        \\
+      Implementation & Cycles                   & Std. dev.                      & Cycles                      & Std. dev.                         & Cycles                       & Std. dev.                          & Cycles                        & Std. dev.                        \\
       \hline \hline
-      AdaFS          & \result{adafs-read-1}                   & \result{adafs-read-1-stdev}              & \result{adafs-read-1024}                  & \result{adafs-read-1024-stdev}              & \result{adafs-read-10240}    & \result{adafs-read-10240-stdev}    & \result{adafs-read-102400}    & \result{adafs-read-102400-stdev} \\
-      fuse-mfs       & \result{fuse-mfs-read-1}                & \result{fuse-mfs-read-1-stdev}           & \result{fuse-mfs-read-1024}               & \result{fuse-mfs-read-1024-stdev}           & \result{fuse-mfs-read-10240} & \result{fuse-mfs-read-10240-stdev} & \result{fuse-mfs-read-102400} & \result{fuse-mfs-read-102400-stdev}
+      AdaFS          & \result{adafs-read-1}    & \result{adafs-read-1-stdev}    & \result{adafs-read-1024}    & \result{adafs-read-1024-stdev}    & \result{adafs-read-10240}    & \result{adafs-read-10240-stdev}    & \result{adafs-read-102400}    & \result{adafs-read-102400-stdev} \\
+      fuse-mfs       & \result{fuse-mfs-read-1} & \result{fuse-mfs-read-1-stdev} & \result{fuse-mfs-read-1024} & \result{fuse-mfs-read-1024-stdev} & \result{fuse-mfs-read-10240} & \result{fuse-mfs-read-10240-stdev} & \result{fuse-mfs-read-102400} & \result{fuse-mfs-read-102400-stdev}
     \end{tabular}
     \caption{CPU cycles to read files of varying sizes}
     \label{tab:read files}
@@ -224,30 +228,57 @@ This makes looking up a free inode much faster, improving the performance of the
 Due to time constraints, AdaFS does not implement this table, and thus has to read it from the disk.
 This is also the case with other similar mechanisms.
 
-To determine if the verification code or implementation language may play a role in the slowdown, we implemented two versions of a factorial function for numbers up to 5, in C and Ada.
-In Ada, we use the same settings and pragmas as AdaFS.
-The Ada version of the function includes a full formal specification, with data and functional contracts, and with type definitions.
-The Ada function is exported and called from C.
-The C version follows the Ada version as closely as the language allows.
+\subsubsection{The performance impact of formal verification code}
+To determine if the verification code may play a role in the slowdown, we implemented two versions of a factorial function for numbers up to and including 20, in Ada.
+We chose 20 because this is the highest possible number whose factorial is within the allowed range; Ada has support for larger numbers via various packages, but we opted not to use them so as not to introduce unnecessary overhead.
+We use the same settings and pragmas as AdaFS.
+One version includes a full formal specification, with data and functional contracts, and with type definitions.
+The other version does not have any verification code whatsoever.
+Both functions are exported to, and called from, C code; there is no parameter type conversion.
 
 We run both implementations 500 times, counting the clock cycles.
 The results (median and standard deviation) are shown in \autoref{tab:factorial comparison}.
-From this, we can see that the Ada implementation only takes 8 more clock cycles than the C implementation.
-Therefore, the implementation language and formal verification code are likely not major contributors to the decreased performance we see in AdaFS.
-The performance degradation must thus be caused by other differences in the implementations.
+From this, we see that the verified code actually seems to be faster.
+However, the difference is only 4 clock cycles (0.01\%), so though verifying code with SPARK may allow the compiler to omit some instructions to check values and ranges, it is more probable that the difference is the result of some unknown interference.
+For practical purposes, there does not seem to be a performance difference between code with formal verification annotations, and code without them.
 
-\begin{table}[h]
+\begin{table}[tb]
   \centering
   \begin{tabular}{l | r | r}
-    Implementation & Cycles & Std. dev. \\
+    Implementation & Cycles                         & Std. dev.                         \\
     \hline \hline
-    Ada            & 132    & 55.21     \\
-    C              & 124    & 38.33
+    Verified       & \result{factorial-verified}    & \result{factorial-verified-stdev} \\
+    Unverified     & \result{factorial-nonverified} & \result{factorial-nonverified-stdev}
   \end{tabular}
   \caption{Factorial function comparison in Ada and C.}
   \label{tab:factorial comparison}
 \end{table}
 
+\subsubsection{The performance impact of C-to-Ada interfacing}
+There is also another variable that must be accounted for: whether a function is called from C or from Ada.
+The operations in AdaFS are called from C, with C types.
+The C types passed into the function need to be converted to their corresponding Ada types, and then converted back when they are returned.
+To see if some extra clock cycles might be used at this boundary, we implemented a function that takes an integer, multiplies it by two, and returns the result.
+In C, this function is trivial; in Ada, the function converts the argument from the C integer type into Ada's Integer type, and then converts it back to a C integer when returning from the function.
+
+We call both implementations from C code, and run them 500 times each, counting the clock cycles.
+The median and standard deviation for both implementations are shown in \autoref{tab:interface comparison}.
+We see that the calling C code from Ada code adds 8 extra clock cycles (i.e. calling a function from Ada is 10\% slower).
+This also probably varies depending on the number of parameter conversions that are necessary.
+
+\begin{table}[tb]
+  \centering
+  \begin{tabular}{l | r | r}
+    Implementation & Cycles & Std. dev. \\
+    \hline \hline
+    Ada & \result{intf-ada} & \result{intf-ada-stdev} \\
+    C & \result{intf-c} & \result{intf-c-stdev}
+  \end{tabular}
+  \caption{The performance impact of interfacing with Ada.}
+  \label{tab:interface comparison}
+\end{table}
+
+\subsubsection{Comparing the performance of random-access IO packages}
 Another potential source of performance degradation could be the choice of IO package.
 Ada offers two packages for random-access data IO: \textit{Stream\_IO} (heterogeneous data) and \textit{Direct\_IO} (homogeneous data).
 In this project, we opted for the former, but the latter may offer better performance.
@@ -258,7 +289,7 @@ Both implementations exported functions to C, and both were called from C; this 
 We used the same setup as for the other tests (i.e. schedule the tests on an isolated CPU, and count clock cycles with RDTSC), and ran each implementation's function 500 times.
 The results (median and standard deviation) are shown in table \autoref{tab:io implementation comparison}.
 
-\begin{table}[h]
+\begin{table}[tb]
   \centering
   \begin{tabular}{l | r | r}
     Implementation & Cycles & Std. dev. \\
@@ -276,4 +307,9 @@ The difference in clock cycles could also be the result of switching between rea
 \textit{Stream IO} has a dedicated function to set the mode of the file, which may be optimised in some way, while with Direct IO, the file has to be closed and reopened with the new mode.
 Therefore, for the purposes of AdaFS where switches between file modes are common, \textit{Stream IO} seems more performant.
 It could also be worthwhile to compare \textit{Stream IO} with one of the sequential IO packages, but as using only sequential reads and writes would require a different filesystem design or some levels of abstraction, it is not covered in this paper.
-\clearpage
+
+\subsubsection{Summary of performance evaluation}
+Overall, there is quite a large difference between AdaFS and the C implementation of MINIX 3, with AdaFS being around 10-20\% slower on average, and the create operation being 412.5 times slower.
+From follow-up testing, we found that interfacing between C and Ada adds 8 extra clock cycles, and that adding formal verification code to implementation code does not seem to impact performance.
+We also compared two random-access IO packages, and found that using a homogeneous IO package does not seem to offer performance advantages over the heterogeneous IO package that we are currently using.
+In summary, the performance difference we observe between AdaFS and its C counterpart is probably either due to optimisation differences, or due to some other variable that we have not tested.
