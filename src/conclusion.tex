@@ -1,19 +1,19 @@
 \section{Conclusion}
-This paper has aimed to explore ways of writing reliable software, in particular reliable filesystems.
-``A computer program does what you tell it to do, not what you want it to do'' \cite{bloch1997}, thus we have investigated methods to allow the programmer to specify what they want a filesystem to do, so that it performs accordingly with minimal or no maintenance effort.
-We highlighted Ada and its SPARK subset, a programming language that has seen great success in industries requiring high-reliability software such as aviation and space exploration, but which has not yet, to the best of our knowledge, been used for the development of a filesystem.
-As a proof-of-concept, we developed AdaFS, a small filesystem with components that are formally verified to perform according to their specification.
-Our evaluation resutls indicate that formal verification, as well as the switch from the traditional choice of C to Ada, probably does not have a major impact on performance.
+This paper aims to explore ways of writing reliable software, in particular reliable filesystems.
+``A computer program does what you tell it to do, not what you want it to do'' \cite{bloch1997}, thus we investigate methods to allow the programmer to specify what they want a filesystem to do, so that it performs accordingly with minimal or no maintenance effort.
+We highlight Ada and its SPARK subset, a programming language that has seen great success in industries requiring high-reliability software such as aviation and space exploration, but which has not yet, to the best of our knowledge, been used for the development of a filesystem.
+As a proof-of-concept, we develop AdaFS, a small filesystem with components that are formally verified to perform according to their specification.
+Our evaluation results indicate that formal verification, as well as the switch from the traditional choice of C to Ada, probably does not have a major impact on performance.
 
 The aim of this paper is not to criticise or dismiss C, nor to suggest Ada as the sole alternative.
 It is rather to explore tools that have not seen much use yet in the domain of filesystems.
 Writing good, reliable C code is possible; one only needs to look at the number of large, widely-used C projects to see this.
-Nonetheless, we hope this paper has demonstrated that Ada is equally suitable as a low-level systems development language, while providing features that allow programmers to ensure that their code runs exactly as intended, such as functional and data contracts.
+Nonetheless, we hope this paper demonstrates that Ada is equally suitable as a low-level systems development language, while boasting features that allow programmers to ensure that their code runs exactly as intended, such as functional and data contracts.
 These features not only provide developers with compile-time guidance, but also allow tools to prove the correctness of a program, which is more difficult to do for code written in C.
 Given that Ada was designed specifically for cases where reliability is the primary concern, it only seems natural that it would excel in those cases.
 
 Future work still needs to be done in this area to produce a filesystem that is suitable for regular use.
 Many crucial optimisations and caching mechanisms are missing, and would need to be implemented.
-The I/O part of the filesystem would need to be formally verified, perhaps using a variant of the Crash Hoare logic developed for other projects discussed in \autoref{sec:related work} to include system crashes in the specification.
+The I/O part of the filesystem would need to be formally verified, perhaps using a variant of the Crash Hoare logic developed for other projects discussed in \autoref{sec:related work} to include system crashes and consistency constraints in the specification.
 Furthermore, the filesystem could be integrated with e.g. a formally verified operating system kernel \cite{king2019}, instead of running in userspace.
 This would provide a solid foundation for reliable system development.

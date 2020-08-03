@@ -1,4 +1,8 @@
 \section{Results \& Evaluation}
+We evaluate our implementation based on two metrics: \textit{correctness} and \textit{performance}.
+Correctness relates to the functionality of the filesystem, i.e. to what degree the functionality of the implementation conforms to its specification.
+Performance describes the speed and efficiency of the implementation.
+
 \subsection{Correctness}
 As stated earlier, the filesystem was split into two parts: a filesystem logic part (the \textit{adafs} package), and an I/O part (the \textit{disk} package).
 Because the logic part is easier to verify, it was the primary focus of formal verification for this project.
@@ -95,8 +99,14 @@ In standard Ada, instructions are emitted to check that e.g. array accesses are 
 However, with SPARK, such verifications can be conducted ahead of time.
 This means that the runtime checks done by Ada can be safely disabled, eliminating a number of machine instructions and thus improving the performance of the system.
 
+The next step in verification would be to verify filesystem consistency, including consistency in the face of crashes.
+This verification was not conducted in this paper, as the packages used for disk IO are not written in the SPARK subset of Ada, and are therefore not amenable to formal verification.
+However, it would be possible to implement a custom IO package that is written in SPARK, and can therefore be verified.
+An alternative approach could be to verify the disk IO component using alternative methods, for example a modified version of Hoare Logic discussed in \autoref{sec:related work}, and this component would export several functions to the Ada filesystem.
+
 \subsection{Performance}
 We conduct several tests to compare the performance of AdaFS with its C counterpart.
+In particular, we would like to find out if the extra formal verification code results in decreased performance, as well as the effect that interfacing between C and Ada has on system performance.
 
 \subsubsection{Microbenchmark comparison of Ada and C filesystem implementations}
 We compare the performance of AdaFS with a C implementation of a FUSE-based MINIX 3 filesystem, fuse-mfs\footnote{\url{https://github.com/redcap97/fuse-mfs}}.
@@ -313,3 +323,4 @@ Overall, there is quite a large difference between AdaFS and the C implementatio
 From follow-up testing, we found that interfacing between C and Ada adds 8 extra clock cycles, and that adding formal verification code to implementation code does not seem to impact performance.
 We also compared two random-access IO packages, and found that using a homogeneous IO package does not seem to offer performance advantages over the heterogeneous IO package that we are currently using.
 In summary, the performance difference we observe between AdaFS and its C counterpart is probably either due to optimisation differences, or due to some other variable that we have not tested.
+\clearpage
