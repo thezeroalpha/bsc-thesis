@@ -12,6 +12,19 @@ C is in widespread use in the development of operating systems and their compone
 However, C is an inherently unsafe language, and its permissiveness means that errors are relatively easy to make.
 Attacks exploiting these errors can be devastating, such as the 2001 CodeRed worm that infiltrated enterprise networks \cite{trendmicro2002}.
 
-This paper explores alternative approaches to writing reliable software, specifically in the context of filesystems.
-A small filesystem based on that of MINIX 2 is developed, in Ada and its SPARK subset.
-Formal verification of some of its parts is conducted, and its effectiveness is analyzed and evaluated.
+There have been efforts in the past, with the largest amount focusing on improving the reliability of operating systems and their kernels.
+There has also been some research in the area of filesystem reliability, and some projects have tried to develop frameworks for building reliable filesystems.
+However, many of the frameworks require learning a language or programming style that is not very familiar to people who are used to working with C-style programming languages.
+
+This paper explores an alternative to writing reliable software, specifically in the context of filesystems.
+We use the Ada programming language and its SPARK subset, which were created specifically for the purpose of building high-reliability software.
+We develop a small filesystem based on that of MINIX 2, demonstrating that using Ada could be a suitable approach for writing low-level filesystem code.
+We conduct formal verification of some of the parts of the filesystem, and analyze and evaluate its effectiveness.
+
+In short, this paper's main contributions are:
+
+\begin{itemize}
+  \item a novel approach to writing filesystems, using Ada, a statically-typed imperative language closer to the traditional choice of C,
+  \item formal verification of some parts of the filesystem, which is written in the SPARK subset of Ada and verified using predicate logic, proving that the code is free of errors,
+  \item an evaluation of the performance effects of using Ada and conducting formal verification, compared to a C implementation.
+\end{itemize}

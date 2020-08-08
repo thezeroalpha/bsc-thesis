@@ -1,16 +1,33 @@
 \section{Filesystem Design}
-To explore ways of writing reliable code, a small, prototype filesystem (AdaFS) was implemented using the Ada 2012 programming language.
-Some parts of this filesystem are written in the SPARK 2014 language, which is a subset of Ada that removes features not amenable to formal verification, and defines new aspects to support modular, constructive, formal verification \cite{sparkRM}.
-The AdaCore GNAT Community 2020 package\footnote{\url{https://www.adacore.com/community}} is used, which provides, among others, the compiler and prover tools.
-For testing purposes, a FUSE driver is written in C, and the built executables are linked with libfuse 3.9.2\footnote{\url{https://github.com/libfuse/libfuse}}.
-The GNAT Project Manager is used to facilitate compilation of source files in different languages and linking of other required libraries.
+To explore ways of writing reliable code, a small, prototype filesystem (AdaFS) was implemented.
+This section describes its design, the decisions that influenced it, and the compromises that we made.
 
+\subsection{Design Overview}
 AdaFS is based on the MINIX 2 filesystem \cite{tanenbaum1997}, with some simplifications due to time constraints.
 The MINIX operating system was written by Andrew Tanenbaum as an educational tool, and is compatible with UNIX, but has a more modular structure.
 The MINIX filesystem was chosen as a model because it is not part of the operating system, but rather runs entirely as a user program.
 As such, it is self-contained.
 Furthermore, due to its educational purpose, it is thoroughly commented and easy to understand.
-The second version of the file system was chosen because MINIX 3 is more complex, as it adds numerous improvements (e.g. for reliability) to place emphasis on its use in research and production \cite{minix3history}.
+We chose the second version of the filesystem because MINIX 3 is more complex, as it adds numerous improvements (e.g. for reliability) to place emphasis on its use in research and production \cite{minix3history}.
+
+\autoref{fig:design overview} shows an overview of the filesystem's design.
+There are four main components: the code defining the filesystem's logic, the component responsible for disk reads and writes, the filesystem operations interface, and the FUSE driver.
+When a request is sent from a userspace application (number 1 in \autoref{fig:design overview}), this request goes to the FUSE kernel module (2), which forwards it to the handler registered via the FUSE library (3).
+The handler is part of the FUSE driver (4), which is currently written partially in C, and partially in Ada.
+The FUSE driver calls the appropriate filesystem operation from the operations interface component (5).
+This component then calls functions from the verified filesystem logic component (6), as well as the disk IO component (7), as needed.
+Finally, it sends a response back up the chain of communication (from 5 back to 1).
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[scale=0.56]{design-overview.png}
+  \caption{AdaFS design overview.}
+  \label{fig:design overview}
+\end{figure}
+
+
+\subsection{Filesystem Organisation}
+We next give an overview of the layout of the filesystem on disk, as well as the layout of various structures used in the filesystem.
 
 A disk is formatted as an AdaFS filesystem using the \textit{mkfs} executable.
 The resulting disk layout is shown in \autoref{fig:adafs disk layout}.
@@ -20,10 +37,17 @@ This abstraction of blocks into zones can make it possible to allocate multiple 
 
 \begin{figure}[tb]
   \centering
-  \incfig{disk-layout}
+  \includegraphics[scale=0.7]{disk-layout.png}
   \caption{AdaFS disk layout. (\textit{n} = number of inode bitmap blocks, \textit{m} = number of zone bitmap blocks, \textit{i} = number of inode blocks, \textit{s} = number of blocks on disk)}
   \label{fig:adafs disk layout}
 \end{figure}
+
+% \begin{figure}[tb]
+%   \centering
+%   \incfig{disk-layout}
+%   \caption{AdaFS disk layout. (\textit{n} = number of inode bitmap blocks, \textit{m} = number of zone bitmap blocks, \textit{i} = number of inode blocks, \textit{s} = number of blocks on disk)}
+%   \label{fig:adafs disk layout}
+% \end{figure}
 
 The disk begins with a boot block that would optionally contain executable code.
 Then, it contains a superblock, and two bitmaps.
@@ -33,7 +57,7 @@ Finally, the rest of the blocks contain user data.
 
 The superblock is the second block on the disk, and contains information about the layout of the filesystem.
 In particular, it contains the number of inodes and zones on disk, the number of inode and zone bitmap blocks, the number of the first data zone, the base-2 logarithm of the number of blocks per zone, the maximum file size, and the magic number.
-The magic number used to identify a correctly formatted disk is $\text{CACA}_{16}$; MINIX uses the magic number $2468_{16}$, but AdaFS avoids using the same number because a disk formatted by the AdaFS \textit{mkfs} utility is not necessarily equivalent to a disk formatted by the MINIX \textit{mkfs} utility.
+The magic number used to identify a correctly formatted disk is $\text{CACA}_{16}$; MINIX uses the magic number $2468_{16}$, but AdaFS avoids using the same number, because a disk formatted by the AdaFS \textit{mkfs} utility is not necessarily equivalent to a disk formatted by the MINIX \textit{mkfs} utility.
 
 The two bitmaps keep track of available inodes and zones, where the \textit{n}th bit of the inode or zone bitmap corresponds to the \textit{n}th inode or zone on disk, respectively.
 If a bit in the inode bitmap is set to 1, that means the corresponding inode is allocated, and if it is set to 0, the inode is free.
@@ -48,24 +72,23 @@ There are 10 zones per inode: 7 direct zones (those that contain data), 1 single
 The unused zone is present for future use, potentially as a triple-indirect zone.
 
 \begin{figure}[tb]
-  \centering
-  \begin{subfigure}[b]{0.49\textwidth}
-    \centering
-    \resizebox{0.8\textwidth}{!}{\incfig{inode-on-disk}}
-    \caption{On disk}
-    \label{fig:inode on disk}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.49\textwidth}
-    \centering
-    \resizebox{0.7\textwidth}{!}{\incfig{inode-in-memory}}
-    \caption{In memory}
-    \label{fig:inode in memory}
-  \end{subfigure}
-  \hfill
-  \caption{Inode representations}
-  \label{fig:inode representations}
+     \centering
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[scale=0.6]{inode-on-disk.png}
+         \caption{On disk}
+         \label{fig:inode on disk}
+     \end{subfigure}
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[scale=0.6]{inode-in-memory.png}
+         \caption{In memory}
+         \label{fig:inode in memory}
+     \end{subfigure}
+     \caption{Inode representations}
+     \label{fig:inode representations}
 \end{figure}
+
 
 The final section spans the rest of the blocks on the disk, broken into zones, and is available to store user data.
 It can contain file data, or directory entries.

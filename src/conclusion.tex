@@ -15,5 +15,6 @@ Given that Ada was designed specifically for cases where reliability is the prim
 Future work still needs to be done in this area to produce a filesystem that is suitable for regular use.
 Many crucial optimisations and caching mechanisms are missing, and would need to be implemented.
 The I/O part of the filesystem would need to be formally verified, perhaps using a variant of the Crash Hoare logic developed for other projects discussed in \autoref{sec:related work} to include system crashes and consistency constraints in the specification.
+It could also be possible to implement a transactional log to ensure consistency.
 Furthermore, the filesystem could be integrated with e.g. a formally verified operating system kernel \cite{king2019}, instead of running in userspace.
 This would provide a solid foundation for reliable system development.

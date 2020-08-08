@@ -99,7 +99,7 @@ In standard Ada, instructions are emitted to check that e.g. array accesses are 
 However, with SPARK, such verifications can be conducted ahead of time.
 This means that the runtime checks done by Ada can be safely disabled, eliminating a number of machine instructions and thus improving the performance of the system.
 
-The next step in verification would be to verify filesystem consistency, including consistency in the face of crashes.
+The next step in verification would be to verify filesystem consistency, including consistency in the face of crashes, or to implement a transactional log.
 This verification was not conducted in this paper, as the packages used for disk IO are not written in the SPARK subset of Ada, and are therefore not amenable to formal verification.
 However, it would be possible to implement a custom IO package that is written in SPARK, and can therefore be verified.
 An alternative approach could be to verify the disk IO component using alternative methods, for example a modified version of Hoare Logic discussed in \autoref{sec:related work}, and this component would export several functions to the Ada filesystem.
@@ -323,4 +323,3 @@ Overall, there is quite a large difference between AdaFS and the C implementatio
 From follow-up testing, we found that interfacing between C and Ada adds 8 extra clock cycles, and that adding formal verification code to implementation code does not seem to impact performance.
 We also compared two random-access IO packages, and found that using a homogeneous IO package does not seem to offer performance advantages over the heterogeneous IO package that we are currently using.
 In summary, the performance difference we observe between AdaFS and its C counterpart is probably either due to optimisation differences, or due to some other variable that we have not tested.
-\clearpage

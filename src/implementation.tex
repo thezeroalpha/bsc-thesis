@@ -1,5 +1,33 @@
 \section{Implementation}
 After discussing the high-level design of the filesystem, we explore the details of the implementation, with particular focus on elements that are specific to Ada/SPARK.
+The filesystem is implemented using the Ada 2012 programming language.
+Some parts of its parts are written in the SPARK 2014 language, which is a subset of Ada that removes features not amenable to formal verification, and defines new aspects to support modular, constructive, formal verification \cite{sparkRM}.
+We use the AdaCore GNAT Community 2020 package\footnote{\url{https://www.adacore.com/community}}, which provides, among others, the compiler and prover tools.
+For testing purposes, a FUSE driver is written in C, and the built executables are linked with libfuse 3.9.2\footnote{\url{https://github.com/libfuse/libfuse}}.
+The GNAT Project Manager is used to facilitate compilation of source files in different languages and linking of other required libraries.
+
+\subsection{Overview}
+The implementation of AdaFS has \result{loc} lines of code: \result{loc-specification} lines for the specification, and \result{loc-implementation} for the implementation.
+\autoref{tab:lines of code} shows the number of lines of code in the entire project, separated by component.
+The component that defines filesystem logic has the most lines of code in the specification, as it also contains the formal verification code, which is placed in the specification files.
+The disk IO component contains has the most lines of implementation code, as it takes care of the complexities of reading/writing data to disk.
+The \textit{mkfs} utility does not contain any specification code, as it is not verified and it consists of a single main procedure (though it has nested procedures, those do not require a specification).
+
+\begin{table}[tb]
+  \centering
+  \begin{tabular}{l | r | r}
+    Component & Specification & Implementation \\
+    \hline \hline
+    Filesystem Logic & \result{loc-logic-specification} & \result{loc-logic-implementation} \\
+    Disk IO & \result{loc-io-specification} & \result{loc-io-implementation} \\
+    FUSE interaction & \result{loc-fuse-specification} & \result{loc-fuse-implementation} \\
+    \textit{mkfs} utility & \result{loc-utility-specification} & \result{loc-utility-implementation}
+  \end{tabular}
+  \caption{Lines of code in AdaFS, separated by component.}
+  \label{tab:lines of code}
+\end{table}
+
+\subsection{Language features}
 
 \paragraph{Strong typing}
 Ada is a strongly typed language, which helps the programmer distinguish between types that are logically different, even if their underlying representation is the same.
@@ -235,7 +263,7 @@ int main(int argc, char **argv) {
 \paragraph{Formal verification}
 Unfortunately, much of the code in its current form is not amenable to formal verification.
 These are namely the parts involving file input and output, and functions that work with C types (i.e. the FUSE driver).
-To mitigate this, we attempted to make use of an existing project containing FUSE bindings for Ada\footnote{\url{https://github.com/medsec/ada-fuse}}, but as the project has not been maintained since 2016, we were unable to compile it.
+To mitigate this, we attempted to make use of an existing project containing FUSE bindings for Ada,\footnote{\url{https://github.com/medsec/ada-fuse}} but as the project has not been maintained since 2016, we were unable to compile it.
 
 Nevertheless, large parts of filesystem logic are formally verifiable.
 Therefore, the code base was split into two distinct packages: the \textit{adafs} package, which contains filesystem logic that is strictly in the SPARK language, and the \textit{disk} package, which contains unverifiable elements such as disk I/O.
