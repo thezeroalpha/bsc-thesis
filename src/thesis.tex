@@ -28,10 +28,6 @@
 \usepackage{xifthen}
 \usepackage{pdfpages}
 \usepackage{transparent}
-\newcommand{\incfig}[1]{%
-  \def\svgwidth{\columnwidth}
-  \resizebox{0.85\textwidth}{!}{\import{./images/}{#1.pdf_tex}}
-}
 \newcommand{\result}[1]{\input{../evaluation/stats/#1}\unskip}
 
 \usepackage[style=ieee]{biblatex}

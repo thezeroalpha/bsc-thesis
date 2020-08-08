@@ -42,13 +42,6 @@ This abstraction of blocks into zones can make it possible to allocate multiple 
   \label{fig:adafs disk layout}
 \end{figure}
 
-% \begin{figure}[tb]
-%   \centering
-%   \incfig{disk-layout}
-%   \caption{AdaFS disk layout. (\textit{n} = number of inode bitmap blocks, \textit{m} = number of zone bitmap blocks, \textit{i} = number of inode blocks, \textit{s} = number of blocks on disk)}
-%   \label{fig:adafs disk layout}
-% \end{figure}
-
 The disk begins with a boot block that would optionally contain executable code.
 Then, it contains a superblock, and two bitmaps.
 The bitmaps are used for inode and zone allocation, and can potentially span multiple blocks.
