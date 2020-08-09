@@ -1,4 +1,5 @@
 \section{Background Information}
+To begin, we summarise the concepts to which we will refer throughout this paper.
 We provide an overview of the historical use of C in low-level systems programming, and the alternatives that have emerged over the years.
 We discuss the Ada programming language and its use in high-reliability systems, as well as the principles of formal verification.
 We conclude the section with a summary of the FUSE library, which simplifies the development of filesystems.
@@ -13,29 +14,29 @@ Due to its history, and because C compilers exist for essentially any processor,
 
 However, many of the characteristics that make C flexible and versatile also place more responsibility on the programmer to ensure that the resulting code is bug-free.
 The permissiveness of C means that, especially in a large codebase, bugs are hard to avoid and often even harder to troubleshoot.
-In the worst case, errors in the code allowing null pointer dereferences or buffer overflows can lead to serious security vulnerabilities affecting thousands of devices \cite{cert2001}.
+In the worst case, errors in the code allowing e.g. null pointer dereferences or buffer overflows can lead to serious security vulnerabilities affecting thousands of devices \cite{cert2001}.
 In 2017, Ray et al. analyzed 850 projects across 17 different programming languages, and found that those with unmanaged memory, such as C, introduce more memory errors \cite{ray2017}.
 Furthermore, C introduced 19.15\% of concurrency errors.
 Another study conducted by WhiteSource found that C has the highest vulnerabilities out of all seven analyzed languages, with 50\% of all reported vulnerabilities in ten years \cite{whitesource2019}.
-Of course, it is important to note that this is in part because more code has been written in C than in any other language, and because C has been in use for much longer than most other languages.
+It is important to note that this is in part because more code has been written in C than in any other language, and because C has been in use for much longer than most other languages.
 WhiteSource note that buffer errors, with the Common Weakness Enumeration (CWE) number CWE-119, are by far the most common security vulnerability in C code.
 
-Specifically in filesystems, a study of 157 cases reported to the Common Vulnerabilities and Exposures (CVE) database between the years 1999 and 2019 was conducted, covering a variety of filesystems including Ext4 and XFS \cite{cai2019}.
+Particularly in the area of filesystems, a study of 157 cases reported to the Common Vulnerabilities and Exposures (CVE) database between the years 1999 and 2019 was conducted, covering a variety of filesystems including Ext4 and XFS \cite{cai2019}.
 Cai et al. found that errors that cause denial of service account for 75\% of all vulnerabilities.
 They concluded that the four largest causes of denial of service are kernel crashes (35\% of vulnerabilities), memory corruption (16\% of vulnerabilities), memory consumption (13\%), and system hang (9\%).
 Kernel crashes and memory corruption can be caused by exploiting invalid pointer dereferences or out-of-bounds memory access, and memory consumption is caused by not properly freeing allocated objects.
 
-In summary, although C is the `traditional' systems programming language, code written in C can be error prone and lead to issues, unless the programmer is aware of the issues and takes explicit steps to prevent them.
+In summary, although C is the `traditional' systems programming language, code written in C can be error-prone and lead to issues, unless the programmer is aware of the issues and takes explicit steps to prevent them.
 Even a simple ``Hello World'' program exposes some of the most dangerous features of the language \cite{milewski}.
-Therefore, it would be beneficial to find a better method, a way to write more reliable systems with less burden resting on the programmer.
+Therefore, it would be beneficial to find a better method, a way to write more reliable systems with less burden placed on the programmer.
 
 \subsection{Possible Alternatives to C}
 Given the issues with C code, what alternatives are there?
-It is possible to subset C and allow only statements or expressions considered suitable for reliable software, or perhaps instead of retroactively imposing restrictions on a language, it would be more beneficial to use a language designed with safety properties in mind.
+It is possible to subset C and allow only statements or expressions considered suitable for reliable software, or perhaps instead of retroactively imposing restrictions on C, it would be more beneficial to use a language designed with safety properties in mind.
 
 \paragraph{Restricting C}
 One option is to use a restricted version of C.
-MISRA C is a coding standard which was initially aimed at the automotive sector (with MISRA standing for the Motor Industry Software Reliability Association), but which later spread to other sectors that require safety and security in C code \cite{bagnara2018}.
+MISRA C is a coding standard that was initially aimed at the automotive sector (MISRA is the Motor Industry Software Reliability Association), but which later spread to other sectors that require safety and security in C code \cite{bagnara2018}.
 Originally supported by the UK government, the goal of the MISRA project was to develop best practice guidelines for reliable software, and the guidelines also deeply influenced NASA's coding standards.
 These guidelines prescribe restricting a ``standardized structured language'' to a subset of its operations, banning non-definite behavior and constraining implementation-defined behavior and compiler extensions.
 They come in the form of directives (specifications for information that is not fully contained in the code, such as requirements or design) and rules (specifications for code).
@@ -51,19 +52,19 @@ Furthermore, it is possible to insert annotations directly into the code, as ass
 \paragraph{The D language}
 D is a multi-paradigm language for systems programming that is compatible with the C application binary interface, and has a direct interface to the operating system APIs and hardware \cite{dlangTour}.
 It is statically typed, and allows programming with contracts.
-Specifically, programmers can define assertions, and pre- and post-conditions, which take the form of boolean expressions or blocks of arbitrary code \cite{dlangContracts}.
-D also allows the definition of invariants -- properties of classes or structs that must always be true \cite{dlangContracts}.
+That is, programmers can define assertions, pre-, and post-conditions, which take the form of boolean expressions or blocks of arbitrary code \cite{dlangContracts}.
+D also allows the definition of invariants -- properties of classes or structures that must always be true \cite{dlangContracts}.
 It is possible to use the \textit{pure} keyword to ensure that a function does not access (read or write) any global mutable state, and to preserve referential transparency, function parameters can be marked as immutable \cite{nadlinger2012}.
 Moreover, D has a memory-safe subset, called SafeD, which also removes undefined behavior.
-The design team expects the majority of programmers to operate within SafeD \cite{milewski}.
+The design team expects the majority of D programmers to operate within SafeD \cite{milewski}.
 
 \paragraph{Rust}
-Rust is a relatively new project that attempts to compete with languages such as C as C++ in the systems development space, while putting the largest emphasis on safety \cite{hoare2010}.
+Rust is a relatively new project that attempts to compete with languages such as C and C++ in the systems development space, while putting the largest emphasis on safety \cite{hoare2010}.
 It ensures static safety by forbidding wild and null pointers, and functions are pure by default.
 All errors cause failure, and task failures are non-recoverable.
 The static rules can be broken in code, but only if this is explicitly authorised in the code.
 There is no shared mutable state, and the language has strict ownership rules where each value has exactly one owner at any time \cite{klabnik2019}.
-Rust has already been used for several large projects, including the Stratis storage management system\footnote{\url{https://stratis-storage.github.io/}} and the Redox microkernel operating system\footnote{\url{https://www.redox-os.org/}}.
+Rust has already been used for several large projects, including the Stratis storage management system\footnote{\url{https://stratis-storage.github.io/}} and the Redox microkernel operating system.\footnote{\url{https://www.redox-os.org/}}
 
 \paragraph{Coq}
 Coq is an interactive theorem prover for development of mathematical proofs, and for verification of programs with respect to their formal specifications \cite{coqRM}.
@@ -79,7 +80,7 @@ Their goal was to select one high order programming language appropriate for the
 A group was created to formulate the requirements for the language, to evaluate existing languages in relation to those requirements, and to select (or implement) the languages.
 The final, refined version of these requirements received the name Steelman.
 Ada (Ada83) was specifically designed to meet these requirements, as no other language satisfied them at the time.
-The Steelman requirements include requirements regarding the maintainability of the language, efficiency, strong typing, and machine independence, among others.
+The Steelman document includes requirements regarding the maintainability of the language, efficiency, strong typing, and machine independence, among others.
 For example, requirement 1B (reliability) states that, ``the language shall be designed to avoid error prone features and to maximize automatic detection of programming errors'' \cite{wheeler1997}.
 Wheeler found that Ada95 satisfies 93\% of the requirements, while C satisfies only 53\% (though it is natural that Ada should satisfy more requirements, given its original purpose).
 Ada has since changed, with subsequent versions imposing fewer restrictions, becoming supersets of the original version (Ada83).
@@ -88,8 +89,9 @@ However, Ada still meets the majority of these requirements.
 
 Ada has been used successfully in a number of real-world applications that require high reliability and security.
 For example, in aviation, it has been used in air traffic management systems for the Netherlands and Germany, and Praxis chose AdaCore's GNAT Pro and SPARK as the implementation language for the UK's Interim Future Area Control Tools Support air traffic control system \cite{adacore2007}.
-It has been used in the Airbus 380 aircraft \cite{feldman2014}, and almost all of the systems in the Boeing 777 jet plane are written in Ada \cite{adaicBoeing}; when Honeywell conducted a study into the benefits of Ada versus C, they concluded that due to Ada's built-in safety features and its accuracy during compilation, less time, expense, and concern would be spent on debugging \cite{adaicBoeing}.
-Ada has been used in space exploration: it was used in the Atlas V rocket (known for launching NASA's Mars Reconnaissance Orbiter\footnote{\url{https://www.nasa.gov/home/hqnews/2005/aug/HQ_05218_MRO_success.html}} and New Horizons\footnote{\url{http://pluto.jhuapl.edu/News-Center/Resources/Press-Kits/011607_JupiterPressKit.pdf}} missions), and aboard scientific space vehicles such as the International Space Station, NASA's CloudSat, and the European Space Agency's Huygens probe \cite{feldman2014}.
+It has been used in the Airbus 380 aircraft \cite{feldman2014}, and almost all of the systems in the Boeing 777 jet plane are written in Ada \cite{adaicBoeing}.
+When Honeywell conducted a study into the benefits of Ada versus C, they concluded that due to Ada's built-in safety features and its accuracy during compilation, less time, expense, and concern would be spent on debugging \cite{adaicBoeing}.
+Ada has been used in space exploration: it was used in the Atlas V rocket (known for launching NASA's Mars Reconnaissance Orbiter\footnote{\url{https://www.nasa.gov/home/hqnews/2005/aug/HQ_05218_MRO_success.html}} and New Horizons\footnote{\url{http://pluto.jhuapl.edu/News-Center/Resources/Press-Kits/011607_JupiterPressKit.pdf}} missions, among others), and aboard scientific space vehicles such as the International Space Station, NASA's CloudSat, and the European Space Agency's Huygens probe \cite{feldman2014}.
 It has also been used in railway transport, e.g. for the European Train Control System and the TGV (whose software was converted from C to Ada).
 
 \subsection{Formal Verification}
@@ -112,8 +114,8 @@ Proof rules and calculi exist to prove partial and total correctness, and the ai
 
 \subsection{Filesystem In Userspace (FUSE)}
 FUSE, an acronym for Filesystem in Userspace, is a library that allows mounting filesystems in userspace.
-It consists of two parts: a kernel part, and a user-level daemon \cite{vangoor2017}.
-The kernel part is a Linux kernel module that registers a \textit{fuse} filesystem and a block device at \textit{/dev/fuse}.
+It consists of two parts: a Linux kernel module, and a user-level daemon \cite{vangoor2017}.
+The kernel module registers a \textit{fuse} filesystem, and a block device at \textit{/dev/fuse}.
 In general, the daemon reads requests from, and writes replies to, this block device.
 FUSE essentially acts as an interface between the mounted filesystem and the kernel.
 When an application makes a request to the FUSE-mounted filesystem, FUSE calls the appropriate handler function of the mounted filesystem, and sends the filesystem's reply back to the application.

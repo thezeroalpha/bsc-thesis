@@ -44,14 +44,16 @@
 
 \begin{document}
   \input{titlepage}
+  % TODO: check passive voice
+  % TODO: check present tense
 
   \begin{abstract}
-    Unreliable filesystems have many dangerous implications, worst of all the loss of data.
+    Unreliable filesystems have many dangerous implications, perhaps worst of all the loss of data.
     A well-designed filesystem is able to deal with errors by isolating them, repairing broken metadata, and mitigating damage.
     But could we instead prevent errors from occurring in the first place?
-    In this paper, we take a look at current research done in the area of formal verification of filesystems.
+    In this paper, we take a look at current research done in the area of formal verification of filesystems, and explore new methods to verify that filesystems perform according to their specification.
     We develop a small filesystem in Ada, a language used for high-reliability software in a range of applications.
-    We then evaluate it, finding that the language and its SPARK subset offer many powerful features that do not negatively impact the filesystem's performance.
+    We then evaluate it, finding that the language and its SPARK subset offer many powerful features that do not seem to negatively impact the filesystem's performance.
   \end{abstract}
   \input{meta}
   \input{introduction}

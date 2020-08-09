@@ -1,5 +1,5 @@
 \section{Filesystem Design}
-To explore ways of writing reliable code, a small, prototype filesystem (AdaFS) was implemented.
+To explore a new way of writing reliable filesystem code, using Ada, we implemented a small, prototype filesystem (AdaFS).
 This section describes its design, the decisions that influenced it, and the compromises that we made.
 
 \subsection{Design Overview}
@@ -55,8 +55,8 @@ The magic number used to identify a correctly formatted disk is $\text{CACA}_{16
 The two bitmaps keep track of available inodes and zones, where the \textit{n}th bit of the inode or zone bitmap corresponds to the \textit{n}th inode or zone on disk, respectively.
 If a bit in the inode bitmap is set to 1, that means the corresponding inode is allocated, and if it is set to 0, the inode is free.
 This is the same for the zone bitmap, pertaining to zones.
-One difference with MINIX is that, in MINIX, the first bit (bit zero) in the bitmaps must always be allocated, as the procedure that searches for a free inode or zone returns zero if no free inode/zone is found.
-In Ada, indexing generally starts at 1, so all bits can be used -- as the first bit is bit one, this does not interfere with the allocation procedure.
+One difference with MINIX is that, in MINIX, the first bit (bit number 0) in the bitmaps must always be allocated, as the procedure that searches for a free inode or zone returns zero if no free inode/zone is found.
+In Ada, indexing generally starts at 1, so all bits can be used -- as the first bit is bit number 1, this does not interfere with the allocation procedure.
 
 The penultimate section of the disk contains inodes; the number of inodes is determined by the size of the disk.
 The inodes have two representations: on-disk (\autoref{fig:inode on disk}) and in-memory (\autoref{fig:inode in memory}).
@@ -94,7 +94,7 @@ The rationale for a shared file position table comes from MINIX, and is based on
 An entry in the filp table contains the number of file descriptors using that entry, the inode number, and the file position for the inode.
 
 Due to time constraints, a number of simplifications were made compared to MINIX.
-In particular, only the features necessary for basic functionality of the system were implemented, and only file operations are supported (create, read, write, delete).
+In particular, only the features necessary for basic functionality of the system were implemented, and only \textit{readdir} and file operations are supported (create, read, write, delete).
 The filesystem does not cache any information, and there is no in-memory inode table; all data are written directly to disk.
 Furthermore, the current implementation does not keep track of file mode, owner, group, or timestamps.
 This results in a limited filesystem, which nonetheless completes its function as a proof-of-concept.

@@ -1,16 +1,16 @@
 \section{Implementation}
 After discussing the high-level design of the filesystem, we explore the details of the implementation, with particular focus on elements that are specific to Ada/SPARK.
 The filesystem is implemented using the Ada 2012 programming language.
-Some parts of its parts are written in the SPARK 2014 language, which is a subset of Ada that removes features not amenable to formal verification, and defines new aspects to support modular, constructive, formal verification \cite{sparkRM}.
-We use the AdaCore GNAT Community 2020 package\footnote{\url{https://www.adacore.com/community}}, which provides, among others, the compiler and prover tools.
-For testing purposes, a FUSE driver is written in C, and the built executables are linked with libfuse 3.9.2\footnote{\url{https://github.com/libfuse/libfuse}}.
+Some of its parts are written in the SPARK 2014 language, which is a subset of Ada that removes features not amenable to formal verification, and defines new aspects to support modular, constructive, formal verification \cite{sparkRM}.
+We use the AdaCore GNAT Community 2020 package,\footnote{\url{https://www.adacore.com/community}} which provides, among others, the compiler and prover tools.
+For testing purposes, a FUSE driver is written in C, and the built executables are linked with libfuse 3.9.2.\footnote{\url{https://github.com/libfuse/libfuse}}
 The GNAT Project Manager is used to facilitate compilation of source files in different languages and linking of other required libraries.
 
 \subsection{Overview}
 The implementation of AdaFS has \result{loc} lines of code: \result{loc-specification} lines for the specification, and \result{loc-implementation} for the implementation.
 \autoref{tab:lines of code} shows the number of lines of code in the entire project, separated by component.
-The component that defines filesystem logic has the most lines of code in the specification, as it also contains the formal verification code, which is placed in the specification files.
-The disk IO component contains has the most lines of implementation code, as it takes care of the complexities of reading/writing data to disk.
+The component that defines filesystem logic has the most lines of code in the specification, as it also contains the formal verification code, which is part of the specification.
+The disk IO component contains the most lines of implementation code, as it takes care of the complexities of reading/writing data to disk.
 The \textit{mkfs} utility does not contain any specification code, as it is not verified and it consists of a single main procedure (though it has nested procedures, those do not require a specification).
 
 \begin{table}[tb]
@@ -28,6 +28,7 @@ The \textit{mkfs} utility does not contain any specification code, as it is not 
 \end{table}
 
 \subsection{Language features}
+Next, we outline some of Ada's features that have been particularly useful in the development of AdaFS, or that we consider unique and interesting.
 
 \paragraph{Strong typing}
 Ada is a strongly typed language, which helps the programmer distinguish between types that are logically different, even if their underlying representation is the same.
@@ -50,7 +51,7 @@ Controlled types allow the programmer to specify precisely what happens when a v
 They are not permitted in SPARK, because the compiler inserts implicit calls to allow this functionality \cite{sparkRM}.
 The initialization and destruction of variables of a controlled type is handled with custom \lstinline[language=Ada]{initialize} and \lstinline[language=Ada]{finalize} procedures for the type, thus the compiler needs to ensure these procedures are called in execution.
 However, in AdaFS, controlled types are not used for any filesystem logic, and are only used with disk I/O to make sure that e.g. the variable containing the superblock is initialized properly with the type of I/O the filesystem uses.
-Therefore, this was deemed acceptable for this prototype.
+Therefore, they were deemed acceptable for this prototype.
 
 \paragraph{Lack of pointers}
 The C codebase of MINIX makes extensive use of pointers to refer to inodes and other structures in memory, addresses on disk, etc.
@@ -69,6 +70,10 @@ Here, two solutions are possible.
 In some cases, it may be preferred to add the return value as an `out' parameter, and rewrite the function as a procedure.
 In other cases, it is better for the function to return multiple values, which is possible with a record type.
 An example is the function \lstinline[language=Ada]{parse_next} in \autoref{code:function returning record}, which returns two values, wrapped in the record type \lstinline[language=Ada]{parsed_res_t}.
+
+A third solution is to simply use index values.
+This was employed in the implementation of tables, such as the \textit{filp} table.
+In MINIX, items in these tables are referred to using pointers, but AdaFS refers to them by index.
 
 \begin{lstlisting}[float=tb,caption={Parse function returning the parsed component and the new cursor position (ellipses denote code omitted for brevity)}, label={code:function returning record}, language=Ada]
 subtype cursor_t is Natural range path'Range;
@@ -90,7 +95,7 @@ Ada supports modularisation in the form of packages, and forms a single translat
 Information hiding is done by defining members as private.
 A package is separated into two parts, which are placed in separate files: the \textit{specification} (the public interface for the package), and the \textit{body} (the implementation).
 The compiler always checks whether the package body matches the specification, and refuses to compile the code if this is not the case.
-\autoref{code:inode specification and body} shows an excerpt of the specification and body of the \lstinline[language=Ada]{adafs.inode} package.
+\autoref{code:inode specification and body} shows an excerpt from the specification and body of the \lstinline[language=Ada]{adafs.inode} package.
 
 A package can also have child packages: for example, the \lstinline[language=Ada]{adafs.inode} package is a child of the \lstinline[language=Ada]{adafs} package.
 A child package has access to all member entities defined in the specification of its parent(s), including private members.
@@ -122,15 +127,15 @@ end adafs.inode;
 \end{lstlisting}
 
 It is also possible to create \textit{generics}.
-Generics are somewhat similar to objects in the OOP paradigm, in that they can be instantiated with parameters.
-However, an important difference is that instantiation can only occur in a declarative region.
+Generics are somewhat similar to objects in the Object-Oriented Programming paradigm, in that they can be instantiated with parameters.
+However, an important difference is that instantiation can only occur in a declarative region (i.e. between the \lstinline[language=Ada]{is} and \lstinline[language=Ada]{begin} keywords).
 Both subprograms and packages can be generic.
 For example, \autoref{code:generic reading function} shows a generic function for reading data from a disk, and its instantiation.
-A specification for a generic function \lstinline[language=Ada]{read_block} is defined in \textit{disk.ads}, accepting a numeric parameter between 0 and the disk size in blocks, and returning a result of the generic type \lstinline[language=Ada]{elem_t}.
+A specification for the generic function \lstinline[language=Ada]{read_block} is defined in \textit{disk.ads}, accepting a numeric parameter between 0 and the disk size in blocks, and returning a result of the generic type \lstinline[language=Ada]{elem_t}.
 In \textit{disk.adb}, the function is implemented.
 If necessary, it first sets the disk file mode to read mode (\lstinline[language=Ada]{in_file}).
 Then, it reads data of the generic type \lstinline[language=Ada]{elem_t} at the disk position corresponding to block number \lstinline[language=Ada]{num}, and returns these data.
-The block-to-position conversion is handled by the \lstinline[language=Ada]{block2pos} function.
+The block-to-position conversion is handled by the \lstinline[language=Ada]{block2pos} function, which is omitted for brevity.
 An example use of the generic function is in \textit{disk-inode.adb}, where the \lstinline[language=Ada]{read_block} function is instantiated with the data block type \lstinline[language=Ada]{data_block_t} (defined in another file to be an array of 1024 bytes).
 The function instance is then used to read the data block \lstinline[language=Ada]{block_num}.
 
@@ -232,7 +237,7 @@ The library also provides, among others, a function to fill file entries into a 
 \autoref{code:fuse open} shows an example from the driver, with an implementation of the open file operation.
 
 FUSE also has support for multithreading and thus concurrent access.
-However, this introduces a large amount of complexity, which is needed to handle concurrent access in a filesystem.
+However, this introduces a large amount of complexity to handle concurrent access in a filesystem.
 Therefore, we run FUSE in single thread mode (with the \textit{-s} flag on the command line), which ensures that there can only be one ongoing file operation at a given time.
 
 \begin{lstlisting}[float=tb,caption={FUSE driver implementation of \textnormal{open}}, label={code:fuse open}, language=C]
@@ -263,10 +268,10 @@ int main(int argc, char **argv) {
 \paragraph{Formal verification}
 Unfortunately, much of the code in its current form is not amenable to formal verification.
 These are namely the parts involving file input and output, and functions that work with C types (i.e. the FUSE driver).
-To mitigate this, we attempted to make use of an existing project containing FUSE bindings for Ada,\footnote{\url{https://github.com/medsec/ada-fuse}} but as the project has not been maintained since 2016, we were unable to compile it.
+To mitigate this, we attempted to make use of an existing project containing FUSE bindings for Ada,\footnote{\url{https://github.com/medsec/ada-fuse}} but as the project had not been maintained since 2016, we were unable to compile it.
 
 Nevertheless, large parts of filesystem logic are formally verifiable.
-Therefore, the code base was split into two distinct packages: the \textit{adafs} package, which contains filesystem logic that is strictly in the SPARK language, and the \textit{disk} package, which contains unverifiable elements such as disk I/O.
+Therefore, the code base was split into two distinct packages: the \textit{adafs} package, which contains filesystem logic that is strictly in the SPARK language (with the exceptions of \textit{adafs.operations}), and the \textit{disk} package, which contains unverifiable elements such as disk I/O.
 The \textit{adafs} package does not include any specifics about the type of disk being used, as the \textit{disk} interface hides implementation details.
 Thus, when needed, and when an alternative is found, the \textit{disk} package can simply be replaced with a verifiable implementation that exposes an identical interface.
 
@@ -288,6 +293,7 @@ The \lstinline[language=Ada]{Global} aspect specifies that the function only dep
 The \lstinline[language=Ada]{Depends} aspect states that the result of the function only depends on the \lstinline[language=Ada]{tab} and \lstinline[language=Ada]{pid} variables (that is, the variable stated in the \lstinline[language=Ada]{Global} aspect, and the parameter of the function).
 The post-condition states that the \lstinline[language=Ada]{is_null} component of the returned variant record will be set to True if there is no entry in \lstinline[language=Ada]{tab} for the provided PID; otherwise, the inode number of the PIDs working directory will be non-zero.
 With the SPARK toolchain, we can verify that these constraints are all satisfied.
+Verification is fully automatic; it does not require any human intervention.
 
 \begin{lstlisting}[float=tb,caption={Functional and data contracts}, label={code:formal verification example}, language=Ada]
 function get_entry (pid : tab_range) return entry_t with

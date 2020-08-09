@@ -99,17 +99,18 @@ In standard Ada, instructions are emitted to check that e.g. array accesses are 
 However, with SPARK, such verifications can be conducted ahead of time.
 This means that the runtime checks done by Ada can be safely disabled, eliminating a number of machine instructions and thus improving the performance of the system.
 
-The next step in verification would be to verify filesystem consistency, including consistency in the face of crashes, or to implement a transactional log.
+The next step in verification would be to verify filesystem consistency, including consistency in the face of crashes.
 This verification was not conducted in this paper, as the packages used for disk IO are not written in the SPARK subset of Ada, and are therefore not amenable to formal verification.
 However, it would be possible to implement a custom IO package that is written in SPARK, and can therefore be verified.
 An alternative approach could be to verify the disk IO component using alternative methods, for example a modified version of Hoare Logic discussed in \autoref{sec:related work}, and this component would export several functions to the Ada filesystem.
+A third option could be to implement a verified transactional log.
 
 \subsection{Performance}
 We conduct several tests to compare the performance of AdaFS with its C counterpart.
 In particular, we would like to find out if the extra formal verification code results in decreased performance, as well as the effect that interfacing between C and Ada has on system performance.
 
 \subsubsection{Microbenchmark comparison of Ada and C filesystem implementations}
-We compare the performance of AdaFS with a C implementation of a FUSE-based MINIX 3 filesystem, fuse-mfs\footnote{\url{https://github.com/redcap97/fuse-mfs}}.
+We compare the performance of AdaFS with a C implementation of a FUSE-based MINIX 3 filesystem, fuse-mfs.\footnote{\url{https://github.com/redcap97/fuse-mfs}}
 As AdaFS is not a complete filesystem, but only supports a small set of operations, it was not possible to use a standardised utility to test it.
 Therefore, we created a microbenchmark in C that executes the relevant system calls and counts the number of CPU clock cycles necessary for each operation.
 We compared some common filesystem operations, such as creating, writing, reading, and deleting files.
@@ -249,7 +250,7 @@ Both functions are exported to, and called from, C code; there is no parameter t
 We run both implementations 500 times, counting the clock cycles.
 The results (median and standard deviation) are shown in \autoref{tab:factorial comparison}.
 From this, we see that the verified code actually seems to be faster.
-However, the difference is only 4 clock cycles (0.01\%), so though verifying code with SPARK may allow the compiler to omit some instructions to check values and ranges, it is more probable that the difference is the result of some unknown interference.
+However, the difference is only 4 clock cycles (1.2\%), so though verifying code with SPARK may allow the compiler to omit some instructions to check values and ranges, it is more probable that the difference is the result of some unknown interference.
 For practical purposes, there does not seem to be a performance difference between code with formal verification annotations, and code without them.
 
 \begin{table}[tb]
@@ -273,7 +274,7 @@ In C, this function is trivial; in Ada, the function converts the argument from 
 
 We call both implementations from C code, and run them 500 times each, counting the clock cycles.
 The median and standard deviation for both implementations are shown in \autoref{tab:interface comparison}.
-We see that the calling C code from Ada code adds 8 extra clock cycles (i.e. calling a function from Ada is 10\% slower).
+We see that calling Ada code from C code adds 8 extra clock cycles (i.e. calling a function from Ada is 10\% slower).
 This also probably varies depending on the number of parameter conversions that are necessary.
 
 \begin{table}[tb]
