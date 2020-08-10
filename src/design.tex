@@ -5,7 +5,7 @@ This section describes its design, the decisions that influenced it, and the com
 \subsection{Design Overview}
 AdaFS is based on the MINIX 2 filesystem \cite{tanenbaum1997}, with some simplifications due to time constraints.
 The MINIX operating system was written by Andrew Tanenbaum as an educational tool, and is compatible with UNIX, but has a more modular structure.
-The MINIX filesystem was chosen as a model because it is not part of the operating system, but rather runs entirely as a user program.
+We selected the MINIX filesystem as a model because it is not part of the operating system, but rather runs entirely as a user program.
 As such, it is self-contained.
 Furthermore, due to its educational purpose, it is thoroughly commented and easy to understand.
 We chose the second version of the filesystem because MINIX 3 is more complex, as it adds numerous improvements (e.g. for reliability) to place emphasis on its use in research and production \cite{minix3history}.
@@ -29,10 +29,10 @@ Finally, it sends a response back up the chain of communication (from 5 back to 
 \subsection{Filesystem Organisation}
 We next give an overview of the layout of the filesystem on disk, as well as the layout of various structures used in the filesystem.
 
-A disk is formatted as an AdaFS filesystem using the \textit{mkfs} executable.
+A disk is formatted as an AdaFS filesystem using the \textit{mkfs} utility.
 The resulting disk layout is shown in \autoref{fig:adafs disk layout}.
 The disk is divided into blocks of 1024 bytes, similarly to MINIX.
-Blocks are collected in zones, which can be of size $2^n$ blocks.
+Blocks are collected into zones, which can be of size $2^n$ blocks.
 This abstraction of blocks into zones can make it possible to allocate multiple blocks at once.
 
 \begin{figure}[tb]
@@ -78,7 +78,7 @@ The unused zone is present for future use, potentially as a triple-indirect zone
          \caption{In memory}
          \label{fig:inode in memory}
      \end{subfigure}
-     \caption{Inode representations}
+     \caption{Inode representations.}
      \label{fig:inode representations}
 \end{figure}
 
@@ -89,7 +89,7 @@ It can contain file data, or directory entries.
 There are also some in-memory structures for working with open files.
 The filesystem keeps a process table in memory, which is indexed by process ID (PID), and keeps track of inode information for all processes using the filesystem.
 One entry corresponds to one process, and contains the inode numbers for the root and working directories of the process, as well as the list of open file descriptors.
-Each open file descriptor corresponds to an entry in the filesystem's \textit{filp} table, which is shared among all processes and contains all the file position.
+Each open file descriptor corresponds to an entry in the filesystem's \textit{filp} table, which is shared among all processes and contains all of the file positions.
 The rationale for a shared file position table comes from MINIX, and is based on problems with the semantics of the \textit{fork} system call \cite{tanenbaum1997}.
 An entry in the filp table contains the number of file descriptors using that entry, the inode number, and the file position for the inode.
 

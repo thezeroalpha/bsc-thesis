@@ -12,6 +12,7 @@ The authors use the consistency rules used by a file system checker (\textit{e2f
 Consequently, the system can detect random corruption at runtime as effectively as a filesystem checker.
 In essence, Recon can conduct online checks similar to those conducted by offline filesystem checkers (e.g. \textit{fsck}).
 The disadvantage is that Recon is limited only to errors detectable by filesystem checkers, and it does not allow the programmer to specify which conditions should be checked.
+It also only detects errors in filesystem metadata, not in user data.
 Nevertheless, it is a general-purpose tool, and functions identically regardless of the implementation of various layers.
 
 Another tool is COGENT, a new, restricted language developed by Amani et al. \cite{amani2016}, as an approach to writing and formally verifying high-assurance filesystem code.
@@ -56,7 +57,7 @@ The filesystem uses FscqLog, a write-ahead log also certified with Crash Hoare l
 FSCQ was developed with the same features as the educational xv6 filesystem, which implements the Unix v6 filesystem with write-ahead logging.
 The implementation used the Coq proof assistant, and generated Haskell code, which could be mounted with the FUSE library and a Haskell driver.
 Based on FSCQ, DFSCQ (Deferred-write FSCQ) was later written to provide a precise specification for \textit{fsync} and \textit{fdatasync} in the case of log-bypass writes \cite{chen2017}.
-Deferring writing data to persistent storage allow filesystem to achieve high I/O performance, and DFSCQ's implementation would provide crash safety for these operations.
+Deferring writing data to persistent storage allows the filesystem to achieve high I/O performance, and DFSCQ's implementation would provide crash safety for these operations.
 In building DFSCQ, the authors presented a tree-based approach to specifying filesystem behavior, and a metadata-prefix specification to specify behavior for crashes.
 Compared to FSCQ, DFSCQ has several optimisations and provides a number of missing features.
 The approach of Chen et al. means that even the complex semantics of crashes and recovery procedures can be captured and verified.

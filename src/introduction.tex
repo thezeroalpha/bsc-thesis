@@ -14,9 +14,9 @@ Attacks exploiting these errors can be devastating, such as the 2001 CodeRed wor
 
 There have been efforts in the past to improve the reliability of systems, with the largest amount focusing on operating systems and their kernels.
 There has also been some research in the area of filesystem reliability, and some projects have tried to develop frameworks for building reliable filesystems.
-However, many of the frameworks require learning a language or programming style that is not very familiar to people who are used to working with C-style programming languages, and some approaches may require radically changing the logic of the filesystem.
+However, many of the frameworks require learning a language or programming style that is not very familiar to people who are used to working with C-style programming languages; moreover, some approaches may require radically changing the logic of the filesystem.
 
-This paper explores an alternative to writing reliable software, particularly in the context of filesystems.
+This paper explores an alternative way to write reliable software, particularly in the context of filesystems.
 We use the Ada programming language and its SPARK subset, which were created specifically for the purpose of building high-reliability software.
 We develop a small filesystem based on that of MINIX 2, demonstrating that using Ada could be a suitable approach for writing low-level filesystem code.
 We conduct formal verification of some of the parts of the filesystem, and analyze and evaluate its effectiveness.

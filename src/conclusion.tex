@@ -1,5 +1,5 @@
 \section{Conclusion}
-This paper aims to explore ways of writing reliable software, in particular reliable filesystems.
+This paper aims to explore ways of writing reliable software, focusing in particular on reliable filesystems.
 ``A computer program does what you tell it to do, not what you want it to do'' \cite{bloch1997}, thus we investigate methods to allow the programmer to specify what they want a filesystem to do, so that it performs accordingly with minimal or no maintenance effort.
 We highlight Ada and its SPARK subset, a programming language that has seen great success in industries requiring high-reliability software such as aviation and space exploration, but which has not yet, to the best of our knowledge, been used for the development of a filesystem.
 As a proof-of-concept, we develop AdaFS, a small filesystem with components that are formally verified to perform according to their specification.
@@ -14,7 +14,7 @@ Given that Ada was designed specifically for cases where reliability is the prim
 
 Future work still needs to be done in this area to produce a filesystem that is suitable for regular use.
 Many crucial optimisations and caching mechanisms are missing, and would need to be implemented.
-The I/O part of the filesystem would need to be formally verified, perhaps using a variant of the Crash Hoare logic developed for other projects discussed in \autoref{sec:related work} to include system crashes and consistency constraints in the specification.
-It could also be possible to implement a transactional log to ensure consistency.
+The I/O component of the filesystem would need to be formally verified, perhaps using a variant of the Crash Hoare logic developed for other projects discussed in \autoref{sec:related work}, to include system crashes and consistency constraints in the specification.
+It could also be possible to implement a transactional log to ensure consistency and atomicity.
 Furthermore, the filesystem could be integrated with e.g. a formally verified operating system kernel \cite{king2019}, instead of running in userspace.
-This would provide a solid foundation for reliable system development.
+This would provide a solid computational foundation for reliable system development.

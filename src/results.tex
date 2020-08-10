@@ -4,16 +4,16 @@ Correctness relates to the functionality of the filesystem, i.e. to what degree 
 Performance describes the speed and efficiency of the implementation.
 
 \subsection{Correctness}
-As stated earlier, the filesystem was split into two parts: a filesystem logic part (the \textit{adafs} package), and an I/O part (the \textit{disk} package).
+As stated earlier, the filesystem was split into two main parts: a filesystem logic part (the \textit{adafs} package), and an I/O part (the \textit{disk} package).
 Because the logic part is easier to verify, it was the primary focus of formal verification for this project.
 Currently, approximately 25\% of the filesystem is verified, and most of the unverified code is in the \textit{disk} package.
 Since the FUSE driver is written in C, and in Ada with C types, it is also not verified.
 
-Subprograms were given functional and data contracts, and type definitions according to their expected functionality.
+We gave subprograms both functional and data contracts, as well as type definitions, according to their expected functionality.
 Although this does not formally verify the functionality of the entire filesystem, it is a good starting point.
 \autoref{code:prover summary} shows a summary of the conducted checks, and \autoref{code:prover output} shows some of the locations of various checks.
 
-\begin{lstlisting}[float=tb,basicstyle=\tiny, caption={Prover summary (\textnormal{gnatprove})}, label={code:prover summary}]
+\begin{lstlisting}[float=tb,basicstyle=\tiny, caption={Prover summary (\textnormal{gnatprove}).}, label={code:prover summary}]
 Summary of SPARK analysis
 =========================
 
@@ -38,7 +38,7 @@ max steps used for successful proof: 1
 Analyzed 12 units
 \end{lstlisting}
 
-\begin{lstlisting}[float=tb,basicstyle=\tiny, caption={Excerpt from the prover output (\textnormal{gnatprove})}, label={code:prover output}]
+\begin{lstlisting}[float=tb,basicstyle=\tiny, caption={Excerpt from the prover output (\textnormal{gnatprove}).}, label={code:prover output}]
 adafs-inode.adb:6:27: info: division check proved (CVC4: 1 VC in max 0.0 seconds and 1 step)
 adafs-inode.adb:6:27: info: range check proved (CVC4: 1 VC in max 0.0 seconds and 1 step)
 adafs-inode.adb:8:44: info: division check proved (CVC4: 1 VC in max 0.0 seconds and 1 step)
@@ -96,12 +96,12 @@ The checks done by the prover can each be related directly to a Common Weakness 
 Due to Ada's type system, many of the checks do not take much effort to verify; in fact, all of the conducted checks were verified in one step.
 The assurances provided by the prover are powerful, as they mean that e.g. overflow errors and range errors can \textit{never} happen at those locations.
 In standard Ada, instructions are emitted to check that e.g. array accesses are within the bounds of the array.
-However, with SPARK, such verifications can be conducted ahead of time.
+However, with SPARK, such verifications can be conducted ahead of time (i.e. during compilation).
 This means that the runtime checks done by Ada can be safely disabled, eliminating a number of machine instructions and thus improving the performance of the system.
 
 The next step in verification would be to verify filesystem consistency, including consistency in the face of crashes.
-This verification was not conducted in this paper, as the packages used for disk IO are not written in the SPARK subset of Ada, and are therefore not amenable to formal verification.
-However, it would be possible to implement a custom IO package that is written in SPARK, and can therefore be verified.
+This verification was not conducted in this paper, as the packages used for disk IO are not written in the SPARK subset of Ada, and are therefore not amenable to formal verification with SPARK.
+However, it may be possible to implement a custom IO package that is written in SPARK, and could therefore be verified.
 An alternative approach could be to verify the disk IO component using alternative methods, for example a modified version of Hoare Logic discussed in \autoref{sec:related work}, and this component would export several functions to the Ada filesystem.
 A third option could be to implement a verified transactional log.
 
@@ -122,7 +122,7 @@ The disk images for the filesystem are stored on an SSD.
 To calculate the number of CPU clock cycles an operation takes, we use a deterministic version of the ReaD Time Stamp Counter (RDTSC) instruction, RDTSCP, which is added as inline assembly in the C microbenchmark code.
 The code to calculate elapsed clock cycles is shown in \autoref{code:rdtsc}.
 
-\begin{lstlisting}[float=tb,caption={Calculating clock cycles}, label={code:rdtsc}, language=C]
+\begin{lstlisting}[float=tb,caption={Calculating clock cycles.}, label={code:rdtsc}, language=C]
 static __inline__ int64_t rdtsc_s(void) {
   unsigned a, d;
   asm volatile("cpuid" ::: "%rax", "%rbx", "%rcx", "%rdx");
@@ -152,7 +152,7 @@ We choose RDTSCP instead of RDTSC because the CPU cannot reorder it relative to 
 We set the \lstinline{isolcpus} kernel option at boot to isolate CPU 1, and then use the \lstinline{sched_affinity} function call to explicitly schedule each test on this CPU.
 \autoref{code:schedule test} shows the code for this.
 
-\begin{lstlisting}[float=tb,caption={Schedule a test on CPU 1}, label={code:schedule test}, language=C]
+\begin{lstlisting}[float=tb,caption={Schedule a test on CPU 1.}, label={code:schedule test}, language=C]
 #define _GNU_SOURCE
 #include <sched.h>
 void run_test(void) {
@@ -176,7 +176,7 @@ We run FUSE in single-thread mode for both implementations of the filesystem.
 
 We run the benchmark 30 times for each filesystem implementation; \autoref{tab:fs comparison} presents the median values for each implementation and operation.
 It is apparent that AdaFS is significantly slower than fuse-mfs.
-The largest difference is apparent in the create operation, which is approximately 412.5 times slower.
+The largest difference is in the create operation, which is approximately 412.5 times slower.
 The remove operation is around 2.5 times slower than that of fuse-mfs.
 For other operations, the difference is not as drastic, though the Ada implementation is still around 10-20\% slower on average.
 
@@ -190,7 +190,7 @@ For other operations, the difference is not as drastic, though the Ada implement
       AdaFS           & \result{adafs-create}                  & \result{adafs-create-stdev}             & \result{adafs-remove}    & \result{adafs-remove-stdev} \\
       fuse-mfs        & \result{fuse-mfs-create}               & \result{fuse-mfs-create-stdev}          & \result{fuse-mfs-remove} & \result{fuse-mfs-remove-stdev}
     \end{tabular}
-    \caption{CPU cycles to create and remove files}
+    \caption{CPU cycles to create and remove files.}
     \label{tab:create remove files}
   \end{subtable}
 
@@ -206,7 +206,7 @@ For other operations, the difference is not as drastic, though the Ada implement
       AdaFS          & \result{adafs-read-1}    & \result{adafs-read-1-stdev}    & \result{adafs-read-1024}    & \result{adafs-read-1024-stdev}    & \result{adafs-read-10240}    & \result{adafs-read-10240-stdev}    & \result{adafs-read-102400}    & \result{adafs-read-102400-stdev} \\
       fuse-mfs       & \result{fuse-mfs-read-1} & \result{fuse-mfs-read-1-stdev} & \result{fuse-mfs-read-1024} & \result{fuse-mfs-read-1024-stdev} & \result{fuse-mfs-read-10240} & \result{fuse-mfs-read-10240-stdev} & \result{fuse-mfs-read-102400} & \result{fuse-mfs-read-102400-stdev}
     \end{tabular}
-    \caption{CPU cycles to read files of varying sizes}
+    \caption{CPU cycles to read files of varying sizes.}
     \label{tab:read files}
   \end{subtable}
 
@@ -222,7 +222,7 @@ For other operations, the difference is not as drastic, though the Ada implement
       AdaFS          & \result{adafs-write-1}                   & \result{adafs-write-1-stdev}              & \result{adafs-write-1024}                  & \result{adafs-write-1024-stdev}              & \result{adafs-write-10240}    & \result{adafs-write-10240-stdev}    & \result{adafs-write-102400}    & \result{adafs-write-102400-stdev} \\
       fuse-mfs       & \result{fuse-mfs-write-1}                & \result{fuse-mfs-write-1-stdev}           & \result{fuse-mfs-write-1024}               & \result{fuse-mfs-write-1024-stdev}           & \result{fuse-mfs-write-10240} & \result{fuse-mfs-write-10240-stdev} & \result{fuse-mfs-write-102400} & \result{fuse-mfs-write-102400-stdev}
     \end{tabular}
-    \caption{CPU cycles to write files of varying sizes}
+    \caption{CPU cycles to write files of varying sizes.}
     \label{tab:write files}
   \end{subtable}
   \caption{Comparing filesystem operation performance in C (fuse-mfs) and Ada (AdaFS), showing the median and standard deviation across 30 observations.}
@@ -315,7 +315,7 @@ The results (median and standard deviation) are shown in table \autoref{tab:io i
 We can see that \textit{Stream IO} is actually faster than Direct IO, taking around 25\% fewer clock cycles for the same operations.
 One reason might be because Direct IO could have some checks in place to verify that the data is indeed homogeneous.
 The difference in clock cycles could also be the result of switching between reading and writing modes.
-\textit{Stream IO} has a dedicated function to set the mode of the file, which may be optimised in some way, while with Direct IO, the file has to be closed and reopened with the new mode.
+\textit{Stream IO} has a dedicated function to set the mode of the file, which may be optimised in some way, while with \textit{Direct IO}, the file has to be closed and reopened with the new mode.
 Therefore, for the purposes of AdaFS where switches between file modes are common, \textit{Stream IO} seems more performant.
 It could also be worthwhile to compare \textit{Stream IO} with one of the sequential IO packages, but as using only sequential reads and writes would require a different filesystem design or some levels of abstraction, it is not covered in this paper.
 
