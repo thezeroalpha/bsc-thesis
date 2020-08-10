@@ -1,0 +1,3 @@
+[submodule "adafs"]
+	path = adafs
+	url = git@github.com:thezeroalpha/adafs
